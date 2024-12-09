@@ -18,70 +18,131 @@ const userData = {
 };
 ---
 
-<Layout title="Your Dashboard">
-    <main class="flex flex-col gap-y-20 md:gap-y-32 overflow-hidden">
-        <Container>
-            <div class="flex flex-col gap-y-10 mt-32">
-                {/* Header Section */}
-                <div class="flex flex-col gap-y-2">
-                    <h1 class="text-heading-1 font-semibold text-2xl sm:text-3xl md:text-4xl">Your Dashboard</h1>
-                    <p class="text-gray-600">Welcome back, {userData.name}</p>
+<Layout title="Dashboard">
+    <div class="min-h-screen bg-body">
+        <!-- Main content -->
+        <main class="p-6 mt-32">
+            <Container>
+                <div class="max-w-4xl mx-auto"> <!-- Added container width and centering -->
+                <!-- Dashboard Title -->
+                <h1 class="text-heading-1 text-3xl font-semibold mb-8">Dashboard</h1>
+                
+                <!-- Balance Section -->
+                <div class="mb-8">
+                    <h2 class="text-heading-2 text-sm mb-2">Total balance</h2>
+                    <div class="text-heading-1 text-4xl font-semibold">185.78 USD</div>
                 </div>
 
-                {/* Balance Card */}
-                <div class="bg-white rounded-lg shadow-md p-6 max-w-md">
-                    <h2 class="text-lg font-medium mb-4">Your Balance</h2>
-                    <div class="text-3xl font-bold mb-2">{userData.balance.stablecoin.toFixed(2)} USDG</div>
-                    <div class="text-gray-600">≈ ${userData.balance.localCurrency.toFixed(2)} {userData.balance.currency}</div>
-                </div>
-
-                {/* Action Buttons */}
-                <div class="flex gap-4">
-                    <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                        Send Money
+                <!-- Action Buttons -->
+                <div class="flex gap-4 mb-8">
+                    <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
+                        Send
                     </button>
-                    <button class="bg-gray-100 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-200">
-                        Request Money
+                    <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
+                        Add money
+                    </button>
+                    <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
+                        Request
                     </button>
                 </div>
 
-                {/* Transaction History */}
-                <div class="mt-8 bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-900">Recent Transactions</h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white rounded-lg shadow">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Party</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                {userData.transactions.map(tx => (
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tx.date}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <span class={tx.amount > 0 ? "text-green-600" : "text-red-600"}>
-                                                {tx.amount > 0 ? "+" : ""}{tx.amount} USDG
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {tx.type === "sent" ? "To: " : "From: "}{tx.party}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                <!-- Account Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- US Account -->
+                    <div class="bg-box-bg p-6 rounded-xl border border-box-border">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                🇺🇸
+                            </div>
+                            <div>
+                                <h3 class="text-heading-1 font-medium">USDG</h3>
+                                <p class="text-heading-2 text-sm">(United States)</p>
+                            </div>
+                        </div>
+                        <p class="text-heading-1 text-2xl font-medium">47.56</p>
+                        <p class="text-heading-2 text-sm">•••• 53028</p>
+                    </div>
+
+                    <!-- Mexico Account -->
+                    <div class="bg-box-bg p-6 rounded-xl border border-box-border">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                🇲🇽
+                            </div>
+                            <div>
+                                <h3 class="text-heading-1 font-medium">USDG</h3>
+                                <p class="text-heading-2 text-sm">(Mexico)</p>
+                            </div>
+                        </div>
+                        <p class="text-heading-1 text-2xl font-medium">93.26</p>
+                        <p class="text-heading-2 text-sm">•••• 53028</p>
+                    </div>
+
+                    <!-- Switzerland Account -->
+                    <div class="bg-box-bg p-6 rounded-xl border border-box-border">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                🇨🇭
+                            </div>
+                            <div>
+                                <h3 class="text-heading-1 font-medium">USDG</h3>
+                                <p class="text-heading-2 text-sm">(Switzerland)</p>
+                            </div>
+                        </div>
+                        <p class="text-heading-1 text-2xl font-medium">44.96</p>
+                        <p class="text-heading-2 text-sm">•••• 71207</p>
                     </div>
                 </div>
 
-                {/* Additional Info */}
-                <div class="text-sm text-gray-500 mt-6">
-                    <p>Transfers settle within minutes with minimal fees.</p>
-                    <p class="mt-2">All values shown are estimates. Actual exchange rates may vary.</p>
+                <!-- Transactions Section -->
+                <div class="bg-box-bg rounded-xl border border-box-border p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-heading-1 text-xl font-semibold">Transactions</h2>
+                        <button class="text-indigo-600 hover:text-indigo-700">See all</button>
+                    </div>
+                    <div class="space-y-4">
+                        <!-- Transaction items -->
+                        <div class="flex items-center justify-between py-2 border-b border-box-border">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                    ↑
+                                </div>
+                                <div>
+                                    <p class="text-heading-1">John</p>
+                                    <p class="text-heading-2 text-sm">Sent · Oct 11</p>
+                                </div>
+                            </div>
+                            <p class="text-heading-1">-242.38 USD</p>
+                        </div>
+
+                        <div class="flex items-center justify-between py-2 border-b border-box-border">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                    ↔
+                                </div>
+                                <div>
+                                    <p class="text-heading-1">To your USD balance</p>
+                                    <p class="text-heading-2 text-sm">Moved · Oct 11</p>
+                                </div>
+                            </div>
+                            <p class="text-heading-1">15.66 USD</p>
+                        </div>
+
+                        <div class="flex items-center justify-between py-2 border-b border-box-border">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                    ↓
+                                </div>
+                                <div>
+                                    <p class="text-heading-1">Sophia</p>
+                                    <p class="text-heading-2 text-sm">Oct 11</p>
+                                </div>
+                            </div>
+                            <p class="text-heading-1 text-green-500">+227.85 USD</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </Container>
-    </main>
+            </Container>
+        </main>
+    </div>
 </Layout>
