@@ -3,143 +3,164 @@ import Container from "../components/shared/Container.astro";
 import Layout from "../layouts/Layout.astro";
 
 // Hardcoded data for MVP
-const userData = {
-    name: "Ana",
-    balance: {
-        stablecoin: 1200.00,
-        localCurrency: 1200.00,
-        currency: "USD"
+const dashboardData = {
+    user: {
+        name: "Ana Smith",
+        balance: {
+            stablecoin: 185.78,
+            localCurrency: 185.78,
+            currency: "USDU"
+        }
     },
+    accounts: [
+        {
+            country: "United States",
+            flag: "🇺🇸",
+            currency: "USDU",
+            balance: 47.56,
+            accountNumber: "53028",
+            localEquivalent: 47.56
+        },
+        {
+            country: "Mexico",
+            flag: "🇲🇽",
+            currency: "USDU",
+            balance: 93.26,
+            accountNumber: "53028",
+            localEquivalent: 93.26
+        },
+        {
+            country: "Switzerland",
+            flag: "🇨🇭",
+            currency: "USDU",
+            balance: 44.96,
+            accountNumber: "71207",
+            localEquivalent: 44.96
+        }
+    ],
     transactions: [
-        { date: "Dec 5, 2024", amount: -50, party: "Maria", type: "sent" },
-        { date: "Dec 3, 2024", amount: 300, party: "Juan", type: "received" },
-        { date: "Dec 1, 2024", amount: -100, party: "Local Shop", type: "sent" }
-    ]
+        {
+            name: "John",
+            type: "sent",
+            date: "Oct 11",
+            amount: -242.38,
+            currency: "USDU",
+            icon: "↑",
+            party: "John Smith"
+        },
+        {
+            name: "Internal Transfer",
+            type: "moved",
+            date: "Oct 11",
+            amount: 15.66,
+            currency: "USDU",
+            icon: "↔",
+            party: "Own Account"
+        },
+        {
+            name: "Sophia",
+            type: "received",
+            date: "Oct 11",
+            amount: 227.85,
+            currency: "USDU",
+            icon: "↓",
+            party: "Sophia Chen"
+        }
+    ],
+    info: {
+        settlementNote: "Transfers settle within minutes with minimal fees.",
+        disclaimer: "All values shown are estimates. Actual exchange rates may vary."
+    }
 };
 ---
 
 <Layout title="Dashboard">
     <div class="min-h-screen bg-body">
-        <!-- Main content -->
         <main class="p-6 mt-32">
             <Container>
-                <div class="max-w-4xl mx-auto"> <!-- Added container width and centering -->
-                <!-- Dashboard Title -->
-                <h1 class="text-heading-1 text-3xl font-semibold mb-8">Dashboard</h1>
-                
-                <!-- Balance Section -->
-                <div class="mb-8">
-                    <h2 class="text-heading-2 text-sm mb-2">Total balance</h2>
-                    <div class="text-heading-1 text-4xl font-semibold">185.78 USD</div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex gap-4 mb-8">
-                    <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
-                        Send
-                    </button>
-                    <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
-                        Add money
-                    </button>
-                    <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
-                        Request
-                    </button>
-                </div>
-
-                <!-- Account Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- US Account -->
-                    <div class="bg-box-bg p-6 rounded-xl border border-box-border">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                🇺🇸
-                            </div>
-                            <div>
-                                <h3 class="text-heading-1 font-medium">USDG</h3>
-                                <p class="text-heading-2 text-sm">(United States)</p>
-                            </div>
+                <div class="max-w-4xl mx-auto">
+                    <!-- Welcome & Title -->
+                    <div class="flex flex-col gap-y-2 mb-8">
+                        <h1 class="text-heading-1 text-3xl font-semibold">Dashboard</h1>
+                        <p class="text-gray-600">Welcome back, {dashboardData.user.name}</p>
+                    </div>
+                    
+                    <!-- Balance Section -->
+                    <div class="mb-8">
+                        <h2 class="text-heading-2 text-sm mb-2">Total balance</h2>
+                        <div class="text-heading-1 text-4xl font-semibold">
+                            {dashboardData.user.balance.stablecoin.toFixed(2)}{" "}{dashboardData.user.balance.currency}
                         </div>
-                        <p class="text-heading-1 text-2xl font-medium">47.56</p>
-                        <p class="text-heading-2 text-sm">•••• 53028</p>
+                        <div class="text-gray-600 mt-1">
+                            ≈ ${dashboardData.user.balance.localCurrency.toFixed(2)} USD
+                        </div>
                     </div>
 
-                    <!-- Mexico Account -->
-                    <div class="bg-box-bg p-6 rounded-xl border border-box-border">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                🇲🇽
-                            </div>
-                            <div>
-                                <h3 class="text-heading-1 font-medium">USDG</h3>
-                                <p class="text-heading-2 text-sm">(Mexico)</p>
-                            </div>
-                        </div>
-                        <p class="text-heading-1 text-2xl font-medium">93.26</p>
-                        <p class="text-heading-2 text-sm">•••• 53028</p>
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 mb-8">
+                        <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
+                            Send
+                        </button>
+                        <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
+                            Add money
+                        </button>
+                        <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
+                            Request
+                        </button>
                     </div>
 
-                    <!-- Switzerland Account -->
-                    <div class="bg-box-bg p-6 rounded-xl border border-box-border">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                                🇨🇭
+                    <!-- Account Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {dashboardData.accounts.map(account => (
+                            <div class="bg-box-bg p-6 rounded-xl border border-box-border">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                        {account.flag}
+                                    </div>
+                                    <div>
+                                        <h3 class="text-heading-1 font-medium">{account.currency}</h3>
+                                        <p class="text-heading-2 text-sm">({account.country})</p>
+                                    </div>
+                                </div>
+                                <p class="text-heading-1 text-2xl font-medium">{account.balance}</p>
+                                <p class="text-heading-2 text-sm mt-1">•••• {account.accountNumber}</p>
+                                <p class="text-gray-500 text-sm mt-1">≈ ${account.localEquivalent} USD</p>
                             </div>
-                            <div>
-                                <h3 class="text-heading-1 font-medium">USDG</h3>
-                                <p class="text-heading-2 text-sm">(Switzerland)</p>
-                            </div>
-                        </div>
-                        <p class="text-heading-1 text-2xl font-medium">44.96</p>
-                        <p class="text-heading-2 text-sm">•••• 71207</p>
+                        ))}
                     </div>
-                </div>
 
-                <!-- Transactions Section -->
-                <div class="bg-box-bg rounded-xl border border-box-border p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-heading-1 text-xl font-semibold">Transactions</h2>
-                        <button class="text-indigo-600 hover:text-indigo-700">See all</button>
+                    <!-- Transactions Section -->
+                    <div class="bg-box-bg rounded-xl border border-box-border p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-heading-1 text-xl font-semibold">Transactions</h2>
+                            <button class="text-indigo-600 hover:text-indigo-700">See all</button>
+                        </div>
+                        <div class="space-y-4">
+                            {dashboardData.transactions.map(transaction => (
+                                <div class="flex items-center justify-between py-2 border-b border-box-border">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                            {transaction.icon}
+                                        </div>
+                                        <div>
+                                            <p class="text-heading-1">{transaction.name}</p>
+                                            <p class="text-heading-2 text-sm">
+                                                {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)} · {transaction.date}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p class={`text-heading-1 ${transaction.type === 'received' ? 'text-green-500' : ''}`}>
+                                        {transaction.amount > 0 ? '+' : ''}{transaction.amount}{" "}{transaction.currency}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    <div class="space-y-4">
-                        <!-- Transaction items -->
-                        <div class="flex items-center justify-between py-2 border-b border-box-border">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    ↑
-                                </div>
-                                <div>
-                                    <p class="text-heading-1">John</p>
-                                    <p class="text-heading-2 text-sm">Sent · Oct 11</p>
-                                </div>
-                            </div>
-                            <p class="text-heading-1">-242.38 USD</p>
-                        </div>
 
-                        <div class="flex items-center justify-between py-2 border-b border-box-border">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    ↔
-                                </div>
-                                <div>
-                                    <p class="text-heading-1">To your USD balance</p>
-                                    <p class="text-heading-2 text-sm">Moved · Oct 11</p>
-                                </div>
-                            </div>
-                            <p class="text-heading-1">15.66 USD</p>
-                        </div>
-
-                        <div class="flex items-center justify-between py-2 border-b border-box-border">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    ↓
-                                </div>
-                                <div>
-                                    <p class="text-heading-1">Sophia</p>
-                                    <p class="text-heading-2 text-sm">Oct 11</p>
-                                </div>
-                            </div>
-                            <p class="text-heading-1 text-green-500">+227.85 USD</p>
-                        </div>
+                    <!-- Additional Info -->
+                    <div class="text-sm text-gray-500 mt-6">
+                        <p>{dashboardData.info.settlementNote}</p>
+                        <p class="mt-2">{dashboardData.info.disclaimer}</p>
                     </div>
                 </div>
             </Container>
