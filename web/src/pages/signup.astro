@@ -64,10 +64,10 @@ import Layout from "../layouts/Layout.astro";
         </Container>
     </main>
 </Layout>
-
 <script>
-    import { auth } from '../lib/firebase/client';
+    import { auth, db } from '../lib/firebase/client';
     import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+    import { doc, setDoc } from 'firebase/firestore';
 
     const form = document.querySelector('form');
     const errorMessage = document.getElementById('error-message');
@@ -80,14 +80,24 @@ import Layout from "../layouts/Layout.astro";
         const password = formData.get('password') as string;
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password); //making user with firebase here
-            // Update the user's profile with their name - populating data with display name field
+            // Create user authentication
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            
+            // Update auth profile
             await updateProfile(userCredential.user, {
                 displayName: name
             });
-            
-            // Store name in localStorage for demo page - could consider something better
-            localStorage.setItem('userName', name);
+
+            // Store user data in Firestore instead of just local storage lol
+            // So now we create a user authentication and we also create a firestore db instance for them
+            // we can store other things in the same thing too using their userID like nank info
+            await setDoc(doc(db, "users", userCredential.user.uid), {
+                name: name,
+                email: email,
+                createdAt: new Date(),
+                userId: userCredential.user.uid
+            });
+
             window.location.href = '/demo';
         } catch (error: any) {
             errorMessage?.classList.remove('hidden');

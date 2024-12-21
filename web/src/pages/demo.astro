@@ -111,7 +111,33 @@ const dashboardData = {
                     <button class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
                         Request
                     </button>
+                    <button 
+                        id="testButton"
+                        class="px-6 py-2 bg-[#4F46E5] text-white rounded-full hover:bg-[#4338CA] transition-colors">
+                        Test
+                    </button>
                 </div>
+
+                <!-- test input into user document with bank example -->
+                <div id="testModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white p-8 rounded-xl max-w-md w-full">
+                        <h2 class="text-2xl font-semibold mb-4">Enter Bank Number</h2>
+                        <input 
+                            type="text" 
+                            id="bankNumber"
+                            placeholder="Enter bank number"
+                            class="w-full px-4 py-2 border rounded-md mb-4"
+                        />
+                        <div class="flex justify-end gap-4">
+                            <button id="cancelButton" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                                Cancel
+                            </button>
+                            <button id="submitButton" class="px-4 py-2 bg-[#4F46E5] text-white rounded-md hover:bg-[#4338CA]">
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>                
 
                 <!-- Account Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -219,13 +245,83 @@ const dashboardData = {
         </main>
     </div>
     <script>
-    // Getting username from querying firebase
-    window.addEventListener('DOMContentLoaded', () => {
-        const userName = localStorage.getItem('userName') || 'Guest';
-        const welcomeElement = document.querySelector('[data-welcome-name]');
-        if (welcomeElement) {
-            welcomeElement.textContent = `Welcome back, ${userName}`;
-        }
-    });
+        import { auth, db } from '../lib/firebase/client';
+        import { doc, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
+
+        // Welcome message handler
+        window.addEventListener('DOMContentLoaded', async () => {
+            const user = auth.currentUser;
+            const welcomeElement = document.querySelector('[data-welcome-name]');
+            if (welcomeElement && user) {
+                welcomeElement.textContent = `Welcome back, ${user.displayName || 'Guest'}`;
+            }
+        });
+
+        // Test button and modal handlers
+        const testButton = document.getElementById('testButton');
+        const testModal = document.getElementById('testModal');
+        const cancelButton = document.getElementById('cancelButton');
+        const submitButton = document.getElementById('submitButton');
+        const bankNumberInput = document.getElementById('bankNumber');
+
+        // Show modal
+        testButton?.addEventListener('click', () => {
+            testModal?.classList.remove('hidden');
+        });
+
+        // Hide modal
+        cancelButton?.addEventListener('click', () => {
+            testModal?.classList.add('hidden');
+            bankNumberInput.value = '';
+        });
+
+        // Submit data
+        submitButton?.addEventListener('click', async () => {
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Please log in first');
+                return;
+            }
+
+            const bankNumber = bankNumberInput?.value;
+            if (!bankNumber) {
+                alert('Please enter a bank number');
+                return;
+            }
+
+            try {
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (userDoc.exists()) {
+                    // Add bank number to existing user document
+                    await updateDoc(userDocRef, {
+                        bankNumbers: arrayUnion({
+                            number: bankNumber,
+                            addedAt: new Date().toISOString()
+                        })
+                    });
+                } else {
+                    // Create new user document with bank number
+                    await setDoc(userDocRef, {
+                        email: user.email,
+                        name: user.displayName,
+                        createdAt: new Date().toISOString(),
+                        bankNumbers: [{
+                            number: bankNumber,
+                            addedAt: new Date().toISOString()
+                        }]
+                    });
+                }
+
+                alert('Bank number added successfully!');
+                testModal?.classList.add('hidden');
+                bankNumberInput.value = '';
+            } catch (error) {
+                console.error('Error adding bank number:', error);
+                alert('Error adding bank number');
+            }
+        });
     </script>
+
 </Layout>

@@ -112,13 +112,13 @@ import Layout from "../layouts/Layout.astro";
 <script>
     console.log('Script loading...'); // Check if script runs at all as a sanity check
     
-    import { auth } from '../lib/firebase/client'; // importing firebase
+    import { auth } from '../lib/firebase/client';
     import { signInWithEmailAndPassword } from 'firebase/auth';
 
     console.log('Firebase auth object:', auth); // Verify Firebase initialization
 
     const form = document.querySelector('form');
-    const errorMessage = document.getElementById('error-message'); 
+    const errorMessage = document.getElementById('error-message');
 
     if (!form) console.error('Form not found');
     if (!errorMessage) console.error('Error message element not found');
@@ -136,11 +136,11 @@ import Layout from "../layouts/Layout.astro";
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log('Login successful:', userCredential.user);
-            window.location.href = '/demo'; //redirect to demo after login successful
+            window.location.href = '/demo';
         } catch (error: any) {
             console.error('Detailed login error:', error.code, error.message);
             errorMessage?.classList.remove('hidden');
-            errorMessage!.textContent = `Login failed: ${error.message}`; //error handling display
+            errorMessage!.textContent = `Login failed: ${error.message}`;
         }
     });
 </script>
