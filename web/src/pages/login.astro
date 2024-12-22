@@ -66,6 +66,7 @@ import Layout from "../layouts/Layout.astro";
 
                         {/* Login Button */}
                         <button
+                            id="loginButton"
                             type="submit"
                             class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors mt-8">
                             Log In
@@ -127,33 +128,42 @@ import Layout from "../layouts/Layout.astro";
     import { signInWithEmailAndPassword } from 'firebase/auth';
     import { onAuthStateChanged } from 'firebase/auth';
 
-    const loginForm = document.getElementById('loginForm');
+    let isSubmitting = false; // Add flag to prevent double submission
+    const form = document.querySelector('form');
     const loginButton = document.querySelector('button[type="submit"]');
     const errorMessage = document.getElementById('error-message');
     const modal = document.getElementById('alreadyLoggedInModal');
     const goToDemoButton = document.getElementById('goToDemoButton');
 
     // Form submission handler
-    loginForm?.addEventListener('submit', async (e) => {
+    form?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        loginButton.disabled = true;
-        loginButton.textContent = 'Logging in...';
-
-        const formData = new FormData(loginForm);
-        const email = formData.get('email');
-        const password = formData.get('password');
-
+        const loginButton = document.querySelector('button[type="submit"]');
+        
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log('Login successful:', userCredential.user);
+            // Disable button and show loading state
+            loginButton.disabled = true;
+            loginButton.textContent = 'Logging in...';
+
+            const formData = new FormData(form);
+            const email = formData.get('email');
+            const password = formData.get('password');
+
+            // Attempt login
+            await signInWithEmailAndPassword(auth, email, password);
+            
+            // Only set session and redirect if login is successful
             sessionStorage.setItem('authSession', 'true');
             window.location.href = '/demo';
         } catch (error) {
             console.error('Login error:', error);
-            errorMessage?.classList.remove('hidden');
-            errorMessage.textContent = `Login failed: ${error.message}`;
+            // Reset button state
             loginButton.disabled = false;
             loginButton.textContent = 'Log In';
+            
+            // Show error message
+            errorMessage?.classList.remove('hidden');
+            errorMessage.textContent = `Login failed: ${error.message}`;
         }
     });
 
@@ -172,6 +182,7 @@ import Layout from "../layouts/Layout.astro";
         window.location.href = '/demo';
     });
 </script>
+
 
 
 
