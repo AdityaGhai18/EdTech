@@ -81,3 +81,22 @@ const navItems = [
         </nav>
     </Container>
 </header>
+
+<script>
+    // Set default theme on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const theme = localStorage.getItem("appTheme") || "dark";
+        document.documentElement.className = theme;
+    });
+
+    // Theme switch handler
+    const switchTheme = document.querySelector("[data-switch-theme]") as HTMLButtonElement;
+    if (switchTheme) {
+        switchTheme.addEventListener("click", (e) => {
+            e.preventDefault();
+            const currentTheme = document.documentElement.classList.contains("dark") ? "light" : "dark";
+            document.documentElement.className = currentTheme;
+            localStorage.setItem("appTheme", currentTheme);
+        });
+    }
+</script>

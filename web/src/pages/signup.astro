@@ -65,6 +65,14 @@ import Layout from "../layouts/Layout.astro";
     </main>
 </Layout>
 <script>
+    import { redirectIfAuthenticated } from '../lib/services/authGuard';
+    
+    window.addEventListener('DOMContentLoaded', async () => {
+        await redirectIfAuthenticated();
+    });
+</script>
+
+<script>
     import { auth, db } from '../lib/firebase/client';
     import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
     import { doc, setDoc } from 'firebase/firestore';

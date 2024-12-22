@@ -246,82 +246,109 @@ const dashboardData = {
     </div>
     <script>
         import { auth, db } from '../lib/firebase/client';
+        import { onAuthStateChanged } from 'firebase/auth';
         import { doc, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore';
 
-        // Welcome message handler
-        window.addEventListener('DOMContentLoaded', async () => {
-            const user = auth.currentUser;
-            const welcomeElement = document.querySelector('[data-welcome-name]');
-            if (welcomeElement && user) {
-                welcomeElement.textContent = `Welcome back, ${user.displayName || 'Guest'}`;
-            }
-        });
-
-        // Test button and modal handlers
+        // All DOM elements
+        const actionButtons = document.querySelectorAll('button');
         const testButton = document.getElementById('testButton');
         const testModal = document.getElementById('testModal');
         const cancelButton = document.getElementById('cancelButton');
         const submitButton = document.getElementById('submitButton');
         const bankNumberInput = document.getElementById('bankNumber');
+        const welcomeElement = document.querySelector('[data-welcome-name]');
 
-        // Show modal
+        // Add event listeners only once
         testButton?.addEventListener('click', () => {
             testModal?.classList.remove('hidden');
         });
 
-        // Hide modal
         cancelButton?.addEventListener('click', () => {
             testModal?.classList.add('hidden');
             bankNumberInput.value = '';
         });
 
-        // Submit data
-        submitButton?.addEventListener('click', async () => {
-            const user = auth.currentUser;
-            if (!user) {
-                alert('Please log in first');
-                return;
-            }
+        
 
-            const bankNumber = bankNumberInput?.value;
-            if (!bankNumber) {
-                alert('Please enter a bank number');
+        // Auth state observer
+        onAuthStateChanged(auth, async (user) => {
+            console.log("Auth state changed:", user); // Debug log
+
+            if (!user) {
+                window.location.href = '/login';
                 return;
             }
 
             try {
-                const userDocRef = doc(db, 'users', user.uid);
+                // Get user data from Firestore
+                const userDocRef = doc(db, "users", user.uid);
                 const userDoc = await getDoc(userDocRef);
+                
+                console.log("Firestore data:", userDoc.data()); // Debug log
 
-                if (userDoc.exists()) {
-                    // Add bank number to existing user document
-                    await updateDoc(userDocRef, {
-                        bankNumbers: arrayUnion({
-                            number: bankNumber,
-                            addedAt: new Date().toISOString()
-                        })
-                    });
-                } else {
-                    // Create new user document with bank number
-                    await setDoc(userDocRef, {
-                        email: user.email,
-                        name: user.displayName,
-                        createdAt: new Date().toISOString(),
-                        bankNumbers: [{
-                            number: bankNumber,
-                            addedAt: new Date().toISOString()
-                        }]
-                    });
+                if (welcomeElement) {
+                    const userName = userDoc.exists() ? userDoc.data().name : user.displayName;
+                    console.log("Setting welcome message with name:", userName); // Debug log
+                    welcomeElement.textContent = `Welcome back, ${userName || 'Guest'}`;
                 }
 
-                alert('Bank number added successfully!');
-                testModal?.classList.add('hidden');
-                bankNumberInput.value = '';
+                // Submit handler
+                submitButton?.addEventListener('click', async () => {
+                    const bankNumber = bankNumberInput?.value;
+                    if (!bankNumber) {
+                        alert('Please enter a bank number');
+                        return;
+                    }
+
+                    try {
+                        if (userDoc.exists()) {
+                            await updateDoc(userDocRef, {
+                                bankNumbers: arrayUnion({
+                                    number: bankNumber,
+                                    addedAt: new Date().toISOString()
+                                })
+                            });
+                        } else {
+                            await setDoc(userDocRef, {
+                                email: user.email,
+                                name: user.displayName,
+                                createdAt: new Date().toISOString(),
+                                bankNumbers: [{
+                                    number: bankNumber,
+                                    addedAt: new Date().toISOString()
+                                }]
+                            });
+                        }
+
+                        alert('Bank number added successfully!');
+                        testModal?.classList.add('hidden');
+                        bankNumberInput.value = '';
+                    } catch (error) {
+                        console.error('Error adding bank number:', error);
+                        alert('Error adding bank number: ' + error.message);
+                    }
+                });
             } catch (error) {
-                console.error('Error adding bank number:', error);
-                alert('Error adding bank number');
+                console.error("Error fetching user data:", error);
             }
         });
+        //listener for navbar click transition to load data
+        document.addEventListener('astro:page-load', async () => {
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    const welcomeElement = document.querySelector('[data-welcome-name]');
+                    if (welcomeElement) {
+                        welcomeElement.textContent = `Welcome back, ${userDoc.exists() ? userDoc.data().name : user.displayName || 'Guest'}`;
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            }
+        });
+
     </script>
+
 
 </Layout>
