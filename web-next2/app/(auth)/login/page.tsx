@@ -19,40 +19,6 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Listen for auth state changes
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        toast({
-          title: 'Already signed in',
-          description: 'Redirecting to dashboard...',
-          status: 'info',
-          duration: 2000,
-          isClosable: true,
-        })
-        
-        // Wait for 1 second before redirecting
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        window.location.replace('/dashboard')
-      }
-    }
-    
-    checkSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, !!session)
-      if (session && event === 'SIGNED_IN') {
-        // Wait for 1 second before redirecting after new sign in
-        setTimeout(() => {
-          window.location.replace('/dashboard')
-        }, 1000)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [toast])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -63,19 +29,28 @@ const Login = () => {
         password,
       })
       
-      console.log('Login response:', { data, error })
-      
       if (error) throw error
 
-      console.log('Login successful, user:', data.user?.email)
+      // Wait for session to be stored
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
-      toast({
-        title: 'Success',
-        description: 'Logged in successfully!',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-      })
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('Session after login:', session)
+
+      if (session) {
+        toast({
+          title: 'Success',
+          description: 'Logged in successfully!',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        })
+
+        // Use router instead of window.location
+        router.push('/dashboard')
+      } else {
+        throw new Error('Failed to establish session')
+      }
 
     } catch (error: any) {
       console.error('Login error:', error)
