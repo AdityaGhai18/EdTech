@@ -52,7 +52,7 @@ const siteConfig = {
     copyright: (
       <>
         Built by{' '}
-        <Link href="mailto:socratesj.osorio at berkeley.edu">Kipu Labs Inc</Link>
+        <Link href="mailto:socratesj.osorio at berkeley.edu">Kipu Labs LLC</Link>
       </>
     ),
     links: [
