@@ -1,0 +1,13 @@
+"use client";
+
+import { chakra } from "@chakra-ui/react";
+import { HTMLMotionProps, motion } from "framer-motion";
+import { ChakraProps } from "@chakra-ui/react";
+
+export interface MotionBoxProps
+  extends Omit<HTMLMotionProps<"div">, "children" | "style">,
+    Omit<ChakraProps, "transition" | "color"> {
+  children?: React.ReactNode;
+}
+
+export const MotionBox = motion(chakra.div);
