@@ -6,13 +6,21 @@ import { FiCheck } from 'react-icons/fi'
 import { Logo } from './logo'
 
 const siteConfig = {
+  // Replace this Logo import with Kipu’s actual logo component or image
   logo: Logo,
+
+  // Updated SEO metadata for Kipu
   seo: {
-    title: 'Saas UI',
-    description: 'The React component library for startups',
+    title: 'Kipu – Near-Zero Fee Cross-Border Transfers',
+    description:
+      'Send and receive money across borders instantly with AI-powered stablecoin technology. Enjoy near-zero fees, immediate access to funds, and reliable local fiat on/off ramps.',
   } as NextSeoProps,
+
+  // Placeholder links for Terms & Privacy, update if you have real URLs
   termsUrl: '#',
   privacyUrl: '#',
+
+  // Header navigation updated with Kipu’s pages
   header: {
     links: [
       {
@@ -38,53 +46,60 @@ const siteConfig = {
       },
     ],
   },
+
+  // Footer updated to reflect Kipu’s ownership
   footer: {
     copyright: (
       <>
         Built by{' '}
-        <Link href="https://twitter.com/Pagebakers">Eelco Wiersma</Link>
+        <Link href="mailto:socratesj.osorio at berkeley.edu">Kipu Labs Inc</Link>
       </>
     ),
     links: [
       {
-        href: 'mailto:hello@saas-ui.dev',
+        href: 'mailto:socratesj.osorio at berkeley.edu',
         label: 'Contact',
       },
       {
-        href: 'https://twitter.com/saas_js',
+        // Replace with your official Twitter handle if desired
+        href: 'https://twitter.com/',
         label: <FaTwitter size="14" />,
       },
       {
-        href: 'https://github.com/saas-js/saas-ui',
+        // Replace with your official GitHub repo if you have one
+        href: 'https://github.com/',
         label: <FaGithub size="14" />,
       },
     ],
   },
+
+  // Sign Up section now highlights Kipu’s key benefits
   signup: {
-    title: 'Start building with Saas UI',
+    title: 'Start Sending Money with Kipu',
     features: [
       {
         icon: FiCheck,
-        title: 'Accessible',
-        description: 'All components strictly follow WAI-ARIA standards.',
+        title: 'Near-Zero Fees',
+        description:
+          'Enjoy minimal or zero cost on cross-border transfers with our AI-based liquidity matching.',
       },
       {
         icon: FiCheck,
-        title: 'Themable',
+        title: 'Stable & Secure',
         description:
-          'Fully customize all components to your brand with theme support and style props.',
+          'USDU is backed 1:1 by USD reserves, ensuring trust and instant redemption for local fiat.',
       },
       {
         icon: FiCheck,
-        title: 'Composable',
+        title: 'Instant Settlement',
         description:
-          'Compose components to fit your needs and mix them together to create new ones.',
+          'Skip the delays. Access funds in seconds with real-time payouts to local bank accounts.',
       },
       {
         icon: FiCheck,
-        title: 'Productive',
+        title: 'Simple & Transparent',
         description:
-          'Designed to reduce boilerplate and fully typed, build your product at speed.',
+          'No hidden fees or complicated procedures. Our interface is designed for quick, seamless transfers.',
       },
     ],
   },

@@ -65,14 +65,14 @@ export const HighlightsTestimonialItem: React.FC<
       <Box
         bgGradient={`linear(to-br, ${transparentize(
           gradient[0],
-          0.8,
-        )(theme)}, ${transparentize(gradient[1], 0.8)(theme)})`}
-        opacity="1"
+          0.9,
+        )(theme)}, ${transparentize(gradient[1], 0.9)(theme)})`}
+        opacity="0.8"
         position="absolute"
         inset="0px"
         pointerEvents="none"
         zIndex="0"
-        _dark={{ opacity: 0.5, filter: 'blur(50px)' }}
+        _dark={{ opacity: 0.9, filter: 'blur(50px)' }}
       />
       <Testimonial
         name={name}

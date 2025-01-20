@@ -1,40 +1,41 @@
 export default {
-  title: 'Loved by tech people',
+  title: 'Trusted by Early Adopters',
   items: [
     {
-      name: 'Eelco Wiersma',
-      description: 'Founder Saas UI',
+      name: 'Daniela Gomez',
+      description: 'International Student, Peru',
       avatar:
-        'https://pbs.twimg.com/profile_images/1470742164024008706/k-eXHtu0_normal.jpg',
+        'https://pbs.twimg.com/profile_images/1470742164024008706/k-eXHtu0_normal.jpg', // Replace with real avatar if available
       children: (
         <>
-          “With SaaS UI I am able to produce high quality dashboard apps and
-          internal tools without a lot of design skills. The ROI really is
-          amazing.”
+          “Kipu has revolutionized how my family supports me while I study
+          abroad. Transfers are instant, fees are basically zero, and I always
+          know my money is secure. It’s a game-changer for international
+          students like me.”
         </>
       ),
     },
     {
-      name: 'Caroline Yahaya',
-      description: 'Fullstack Developer',
-      avatar: '/static/images/avatar2.jpg',
+      name: 'Javier Mendoza',
+      description: 'Small Business Owner, Mexico',
+      avatar: '/static/images/avatar2.jpg', // Replace with real avatar if available
       children: (
         <>
-          “Saas UI allows me to build beautiful and functional UI super fast.
-          The components are very well thought out and the Next.js starter kit
-          saved me at least 100 hours of work.”
+          “Using Kipu for my cross-border payments has saved my business
+          thousands of dollars. It’s fast, reliable, and incredibly easy to
+          use—I can’t imagine going back to traditional remittance services.”
         </>
       ),
     },
     {
-      name: 'Alberto Vazquez',
-      description: 'Frontend Engineer',
-      avatar: '/static/images/avatar3.jpg',
+      name: 'Sophia Patel',
+      description: 'Freelancer, India',
+      avatar: '/static/images/avatar3.jpg', // Replace with real avatar if available
       children: (
         <>
-          “Saas UI gave us a perfect starting point for our project, having the
-          storybooks already set up with beautifully crafted components and
-          fully mocked pages was a treat.”
+          “I love how simple and transparent Kipu is. I can receive payments
+          from my US clients without worrying about hidden fees or waiting for
+          days. Highly recommend it to anyone working internationally.”
         </>
       ),
     },

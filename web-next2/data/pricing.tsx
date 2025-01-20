@@ -1,113 +1,116 @@
 import { HStack, Text } from '@chakra-ui/react'
 
 export default {
-  title: 'Pricing for every stage',
+  title: 'Flexible Pricing for Every Need',
   description:
-    'Pay once and get life-time access to our high quality components.',
+    'Kipu is free during our beta, with optional advanced features and near-zero fees. Scale your cross-border transfers on your own terms.',
   plans: [
     {
-      id: 'oss',
-      title: 'Open Source',
-      description: 'Basic compoents, perfect to get started.',
+      id: 'beta',
+      title: 'Beta Access',
+      description:
+        'Perfect for individuals and early adopters who want to experience Kipu at no cost.',
       price: 'Free',
       features: [
         {
-          title: 'MIT License',
+          title: 'Near-zero fees on personal transfers',
         },
         {
-          title: 'Authentication (Clerk/Supabase/Magic)',
+          title: 'Instant remittances via USDU stablecoin',
         },
         {
-          title: 'Form (react-hook-form)',
+          title: 'AI-driven liquidity matching',
         },
         {
-          title: 'Modals manager',
+          title: 'Basic support & community access',
         },
         {
-          title: 'Hotkeys',
+          title: 'Easy on/off ramps for local fiat',
         },
         {
-          title: 'Web3 components',
+          title: 'Deposit & withdraw in one corridor (e.g., US ↔ LATAM)',
         },
         {
-          title: 'And much more...',
+          title: 'Early feedback opportunity',
         },
       ],
       action: {
-        href: '#',
+        href: '#', // Adjust to your signup link or beta waitlist page
       },
     },
     {
-      id: 'bootstrap',
-      title: 'Bootstrap',
-      description: 'Complete frontend stack for bootstrappers and small teams.',
-      price: 'Free',
+      id: 'personal',
+      title: 'Personal',
+      description:
+        'Ideal for frequent senders who want expanded features and broader corridor options.',
+      price: 'Near-zero fees',
       isRecommended: true,
       features: [
         {
-          title: 'One project',
+          title: 'Multiple corridors (US ↔ LATAM, US ↔ Mexico, etc.)',
         },
         {
-          title: 'One developer',
+          title: 'Higher transaction limits',
         },
         {
-          title: 'Advanced components',
+          title: 'Advanced stablecoin & P2P features',
         },
         {
-          title: 'Multiple themes',
+          title: 'Priority in AI liquidity matching',
         },
         {
-          title: 'Next.js and Electron boilerplates',
+          title: 'Enhanced KYC support',
         },
         {
-          title: 'Private discord community',
-        },
-        {
-          title: '1 year of updates',
+          title: '1 year of updates & feature expansions',
         },
         null,
         {
-          title: 'Private beta access',
+          title: 'Dedicated customer support',
           iconColor: 'green.500',
         },
       ],
       action: {
-        href: 'https://appulse.gumroad.com/l/saas-ui-pro-pre-order?variant=Single%20license',
+        href: '#', // Replace with your pricing or upgrade link
       },
     },
     {
-      id: 'startup',
-      title: 'Startup',
-      description: 'Unlimited license for growing teams.',
+      id: 'enterprise',
+      title: 'Enterprise',
+      description:
+        'Unlimited volume and tailored solutions for businesses, remittance providers, and high-volume users.',
       price: (
         <HStack>
           <Text textDecoration="line-through" fontSize="sm" color="gray.400">
-            €999,-
+            0.25% / Tx
           </Text>
-          <Text>€499,-</Text>
+          <Text>Custom Pricing</Text>
         </HStack>
       ),
       features: [
         {
-          title: 'Unlimited projects',
+          title: 'Unlimited transaction volume',
         },
         {
-          title: 'Unlimited developers',
+          title: 'Custom corridor expansions & local partnerships',
         },
         {
-          title: '1 year of updates',
+          title: 'Advanced compliance & regulatory support',
         },
         {
-          title: 'Everything from Bootstrap',
+          title: 'Dedicated account manager & SLA',
+        },
+        {
+          title: 'Priority liquidity provisioning',
         },
         null,
         {
-          title: 'Private beta access',
+          title: 'Tailored AI matching & integrations',
           iconColor: 'green.500',
         },
       ],
       action: {
-        href: 'https://appulse.gumroad.com/l/saas-ui-pro-pre-order?variant=Unlimited%20license',
+        href: '#', // Replace with your Enterprise contact form or CTA
       },
     },
   ],

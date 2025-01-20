@@ -50,7 +50,6 @@ import {
   HighlightsItem,
   HighlightsTestimonialItem,
 } from '#components/highlights'
-import { ChakraLogo, NextjsLogo } from '#components/logos'
 import { FallInPlace } from '#components/motion/fall-in-place'
 import { Pricing } from '#components/pricing/pricing'
 import { Testimonial, Testimonials } from '#components/testimonials'
@@ -59,9 +58,11 @@ import faq from '#data/faq'
 import pricing from '#data/pricing'
 import testimonials from '#data/testimonials'
 
+// 1. Updated Metadata
 export const meta: Metadata = {
-  title: 'Saas UI Landingspage',
-  description: 'Free SaaS landingspage starter kit',
+  title: 'Kipu – AI-Powered Global Remittances',
+  description:
+    'Send money across borders at near-zero cost with Kipu. Instant stablecoin transfers that eliminate hidden fees and wait times.',
 }
 
 const Home: NextPage = () => {
@@ -82,6 +83,7 @@ const Home: NextPage = () => {
   )
 }
 
+// 2. Hero Section
 const HeroSection: React.FC = () => {
   return (
     <Box position="relative" overflow="hidden">
@@ -92,32 +94,36 @@ const HeroSection: React.FC = () => {
             id="home"
             justifyContent="flex-start"
             px="0"
+            // 2.1 Headline
             title={
               <FallInPlace>
-                Build beautiful
-                <Br /> software faster
+                Send Money Across Borders
+                <Br /> at Near-Zero Cost
               </FallInPlace>
             }
+            // 2.2 Subheadline / Hero description
             description={
               <FallInPlace delay={0.4} fontWeight="medium">
-                Saas UI is a <Em>React component library</Em>
-                <Br /> that doesn&apos;t get in your way and helps you <Br />{' '}
-                build intuitive SaaS products with speed.
+                Kipu is an <Em>AI-powered, blockchain-based platform</Em> that
+                empowers you to transfer funds internationally without hidden
+                fees or delays. Our <Em>USDU stablecoin network</Em> is backed
+                1:1 by USD reserves, ensuring trust and instant liquidity for
+                all your cross-border transactions.
               </FallInPlace>
             }
           >
             <FallInPlace delay={0.8}>
-              <HStack pt="4" pb="12" spacing="8">
-                <NextjsLogo height="28px" /> <ChakraLogo height="20px" />
-              </HStack>
+              {/* Action Buttons */}
+              <ButtonGroup spacing={4} alignItems="center" mt={6}>
 
-              <ButtonGroup spacing={4} alignItems="center">
+                {/* 2.3 Primary CTA */}
                 <ButtonLink colorScheme="primary" size="lg" href="/signup">
-                  Sign Up
+                  Sign Up Now
                 </ButtonLink>
+                {/* 2.4 Secondary CTA */}
                 <ButtonLink
                   size="lg"
-                  href="https://demo.saas-ui.dev"
+                  href="#features"
                   variant="outline"
                   rightIcon={
                     <Icon
@@ -132,11 +138,13 @@ const HeroSection: React.FC = () => {
                     />
                   }
                 >
-                  View demo
+                  Learn More
                 </ButtonLink>
               </ButtonGroup>
             </FallInPlace>
           </Hero>
+
+          {/* Example Image or Screenshot (optional) */}
           <Box
             height="600px"
             position="absolute"
@@ -152,7 +160,7 @@ const HeroSection: React.FC = () => {
                   src="/static/screenshots/list.png"
                   width={1200}
                   height={762}
-                  alt="Screenshot of a ListPage in Saas UI Pro"
+                  alt="Screenshot of Kipu's dashboard"
                   quality="75"
                   priority
                 />
@@ -162,6 +170,7 @@ const HeroSection: React.FC = () => {
         </Stack>
       </Container>
 
+      {/* 2.5 Quick Benefits (Optional) */}
       <Features
         id="benefits"
         columns={[1, 2, 4]}
@@ -170,33 +179,34 @@ const HeroSection: React.FC = () => {
         pt="20"
         features={[
           {
-            title: 'Accessible',
+            title: 'Near-Zero Fees',
             icon: FiSmile,
-            description: 'All components strictly follow WAI-ARIA standards.',
+            description:
+              'Stop wasting money on high wire transfers. Kipu leverages AI-based liquidity to cut transaction fees to almost zero.',
             iconPosition: 'left',
             delay: 0.6,
           },
           {
-            title: 'Themable',
+            title: 'Instant Liquidity',
             icon: FiSliders,
             description:
-              'Fully customize all components to your brand with theme support and style props.',
+              'No more waiting days for funds. USDU stablecoins settle instantly, so recipients have immediate access to cash.',
             iconPosition: 'left',
             delay: 0.8,
           },
           {
-            title: 'Composable',
+            title: 'Trusted & Stable',
             icon: FiGrid,
             description:
-              'Compose components to fit your needs and mix them together to create new ones.',
+              'USDU is backed 1:1 by USD reserves in each region, ensuring security and local on/off ramps wherever you go.',
             iconPosition: 'left',
             delay: 1,
           },
           {
-            title: 'Productive',
+            title: 'Easy Transfers',
             icon: FiThumbsUp,
             description:
-              'Designed to reduce boilerplate and fully typed, build your product at speed.',
+              'Send funds directly to friends, family, or yourself in another country with just a few clicks.',
             iconPosition: 'left',
             delay: 1.1,
           },
@@ -207,20 +217,27 @@ const HeroSection: React.FC = () => {
   )
 }
 
+// 3. Highlights Section
 const HighlightsSection = () => {
-  const { value, onCopy, hasCopied } = useClipboard('yarn add @saas-ui/react')
+  const { value, onCopy, hasCopied } = useClipboard('https://mykipu.com')
 
   return (
     <Highlights>
-      <HighlightsItem colSpan={[1, null, 2]} title="Core components">
+      {/* 3.1 First Highlight: Brief Intro/CTA */}
+      <HighlightsItem
+        colSpan={[1, null, 2]}
+        title="Simplify Global Money Transfers"
+      >
         <VStack alignItems="flex-start" spacing="8">
           <Text color="muted" fontSize="xl">
-            Get started for free with <Em>30+ open source components</Em>.
-            Including authentication screens with Clerk, Supabase and Magic.
-            Fully functional forms with React Hook Form. Data tables with React
-            Table.
+            With Kipu, you can deposit local fiat, instantly receive stablecoins
+            (USDU), and withdraw them in another country’s currency—all while
+            skipping the typical wire fees. Whether you’re a student or sending
+            money to family back home, Kipu makes cross-border payments fast,
+            transparent, and hassle-free.
           </Text>
 
+          {/* Example usage: Copy link or sign-up reference */}
           <Flex
             rounded="full"
             borderWidth="1px"
@@ -234,15 +251,15 @@ const HighlightsSection = () => {
           >
             <Box>
               <Text color="yellow.400" display="inline">
-                yarn add
+                Visit:
               </Text>{' '}
               <Text color="cyan.300" display="inline">
-                @saas-ui/react
+                {value}
               </Text>
             </Box>
             <IconButton
               icon={hasCopied ? <FiCheck /> : <FiCopy />}
-              aria-label="Copy install command"
+              aria-label="Copy URL"
               onClick={onCopy}
               variant="ghost"
               ms="4"
@@ -252,50 +269,56 @@ const HighlightsSection = () => {
           </Flex>
         </VStack>
       </HighlightsItem>
-      <HighlightsItem title="Solid foundations">
+
+      {/* 3.2 Secondary Highlight: Problem-Solution Emphasis */}
+      <HighlightsItem title="Why Kipu?">
         <Text color="muted" fontSize="lg">
-          We don&apos;t like to re-invent the wheel, neither should you. We
-          selected the most productive and established tools in the scene and
-          build Saas UI on top of it.
+          Traditional remittance services are slow, expensive, and often lack
+          transparency. Kipu solves these issues with:
+        </Text>
+        <Text mt="2" color="muted" fontSize="lg">
+          • AI-powered matching to cut fees <Br />
+          • 1:1 USD-backed stablecoins to ensure value <Br />
+          • Local reserves for immediate liquidity and payout
         </Text>
       </HighlightsItem>
+
+      {/* 3.3 Testimonial Example (Social Proof) */}
       <HighlightsTestimonialItem
-        name="Renata Alink"
-        description="Founder"
+        name="Daniela G."
+        description="International Student, Peru"
         avatar="/static/images/avatar.jpg"
         gradient={['pink.200', 'purple.500']}
       >
-        “Saas UI helped us set up a beautiful modern UI in no time. It saved us
-        hundreds of hours in development time and allowed us to focus on
-        business logic for our specific use-case from the start.”
+        “Kipu has saved me so much time and money! My parents can send dollars
+        from the US and I withdraw in soles the same day—no crazy fees. It’s
+        truly seamless.”
       </HighlightsTestimonialItem>
+
+      {/* 3.4 Additional Info Highlight */}
       <HighlightsItem
         colSpan={[1, null, 2]}
-        title="Start your next idea two steps ahead"
+        title="Engineered for Maximum Impact"
       >
         <Text color="muted" fontSize="lg">
-          We took care of all your basic frontend needs, so you can start
-          building functionality that makes your product unique.
+          Whether you’re supporting a loved one abroad or managing tuition
+          payments, Kipu’s near-instant settlement and stablecoin technology
+          guarantee peace of mind. Say goodbye to cumbersome wire fees and
+          unpredictable exchange rates—start sending smarter, faster, and
+          cheaper.
         </Text>
         <Wrap mt="8">
           {[
-            'authentication',
-            'navigation',
-            'crud',
-            'settings',
-            'multi-tenancy',
-            'layouts',
-            'billing',
-            'a11y testing',
-            'server-side rendering',
-            'documentation',
-            'onboarding',
-            'storybooks',
-            'theming',
-            'upselling',
-            'unit testing',
-            'feature flags',
-            'responsiveness',
+            'AI-driven liquidity',
+            '1:1 stablecoin reserves',
+            'Instant cross-border payouts',
+            'Regulated banking partners',
+            'User-friendly app',
+            'No hidden fees',
+            'Supports multiple currencies',
+            'Secure & compliant',
+            'Real-time notifications',
+            'Trusted by students abroad',
           ].map((value) => (
             <Tag
               key={value}
@@ -313,6 +336,7 @@ const HighlightsSection = () => {
   )
 }
 
+// 4. Features Section
 const FeaturesSection = () => {
   return (
     <Features
@@ -324,16 +348,14 @@ const FeaturesSection = () => {
           textAlign="left"
           as="p"
         >
-          Not your standard
-          <Br /> dashboard template.
+          Discover Kipu’s Core Advantages
         </Heading>
       }
       description={
         <>
-          Saas UI Pro includes everything you need to build modern frontends.
-          <Br />
-          Use it as a template for your next product or foundation for your
-          design system.
+          We go beyond traditional remittances by leveraging stablecoins,
+          blockchain tech, and AI-based liquidity. Kipu offers everything you
+          need for secure, frictionless, and cost-effective money transfers.
         </>
       }
       align="left"
@@ -341,71 +363,66 @@ const FeaturesSection = () => {
       iconSize={4}
       features={[
         {
-          title: '#components.',
+          title: 'Zero-Cost Transfers',
           icon: FiBox,
           description:
-            'All premium components are available on a private NPM registery, no more copy pasting and always up-to-date.',
+            'Our AI-driven engine matches currency flows in real-time, letting you send money with negligible or zero fees.',
           variant: 'inline',
         },
         {
-          title: 'Starterkits.',
+          title: 'AI Liquidity Matching',
           icon: FiLock,
           description:
-            'Example apps in Next.JS, Electron. Including authentication, billing, example pages, everything you need to get started FAST.',
+            'Eliminates the need for large reserve pools by automatically pairing user transactions across borders.',
           variant: 'inline',
         },
         {
-          title: 'Documentation.',
+          title: 'Backed 1:1 by USD',
           icon: FiSearch,
           description:
-            'Extensively documented, including storybooks, best practices, use-cases and examples.',
+            'Our USDU stablecoins are pegged to the dollar, guaranteeing stable value and smooth on/off ramps.',
           variant: 'inline',
         },
         {
-          title: 'Onboarding.',
+          title: 'Instant Settlement',
           icon: FiUserPlus,
           description:
-            'Add user onboarding flows, like tours, hints and inline documentation without breaking a sweat.',
+            'No more waiting days for funds to clear. Recipients can withdraw in local fiat almost immediately.',
           variant: 'inline',
         },
         {
-          title: 'Feature flags.',
+          title: 'Multi-Region Expansion',
           icon: FiFlag,
           description:
-            "Implement feature toggles for your billing plans with easy to use hooks. Connect Flagsmith, or other remote config services once you're ready.",
+            'We start with the U.S.–LATAM corridor, then expand to other high-volume remittance channels (Mexico, India, Australia).',
           variant: 'inline',
         },
         {
-          title: 'Upselling.',
+          title: 'Smartphone-Friendly',
           icon: FiTrendingUp,
           description:
-            '#components and hooks for upgrade flows designed to make upgrading inside your app frictionless.',
+            'Kipu’s mobile-first approach means anyone can transact on the go, track funds, and manage stablecoins with ease.',
           variant: 'inline',
         },
         {
-          title: 'Themes.',
+          title: 'Compliance Built-In',
           icon: FiToggleLeft,
           description:
-            'Includes multiple themes with darkmode support, always have the perfect starting point for your next project.',
+            'Robust KYC and AML checks ensure trust and meet regulatory requirements in all supported regions.',
           variant: 'inline',
         },
         {
-          title: 'Generators.',
+          title: 'Advanced Security',
           icon: FiTerminal,
           description:
-            'Extend your design system while maintaininig code quality and consistency with built-in generators.',
+            'End-to-end encryption, secure bank integrations, and audited smart contracts keep your data and funds protected.',
           variant: 'inline',
         },
         {
-          title: 'Monorepo.',
+          title: 'Simple, Transparent UX',
           icon: FiCode,
-          description: (
-            <>
-              All code is available as packages in a high-performance{' '}
-              <Link href="https://turborepo.com">Turborepo</Link>, you have full
-              control to modify and adjust it to your workflow.
-            </>
-          ),
+          description:
+            'No jargon or hidden steps. Our interface is designed for anyone to send, hold, or withdraw money with minimal clicks.',
           variant: 'inline',
         },
       ]}
@@ -413,12 +430,14 @@ const FeaturesSection = () => {
   )
 }
 
+// 5. Testimonials Section
 const TestimonialsSection = () => {
+  // You can still use the existing testimonial logic if you wish
+  // or replace it with Kipu-specific testimonials directly.
   const columns = React.useMemo(() => {
     return testimonials.items.reduce<Array<typeof testimonials.items>>(
       (columns, t, i) => {
         columns[i % 3].push(t)
-
         return columns
       },
       [[], [], []],
@@ -427,11 +446,12 @@ const TestimonialsSection = () => {
 
   return (
     <Testimonials
-      title={testimonials.title}
+      title="What Our Early Adopters Say"
       columns={[1, 2, 3]}
       innerWidth="container.xl"
     >
       <>
+        {/* Example: Map existing data or create new testimonials */}
         {columns.map((column, i) => (
           <Stack key={i} spacing="8">
             {column.map((t, i) => (
@@ -444,18 +464,52 @@ const TestimonialsSection = () => {
   )
 }
 
+// 6. Pricing Section (If relevant, can be repurposed for “Get Early Access”)
 const PricingSection = () => {
   return (
-    <Pricing {...pricing}>
+    <Pricing
+      title="Early Access & Future Plans"
+      description="Kipu is free while in beta. Experience zero-cost money transfers now. Eventually, micro-fees may apply, but our mission remains: make remittances near-free for everyone."
+      plans={pricing.plans}
+      features={pricing.features}
+    >
       <Text p="8" textAlign="center" color="muted">
-        VAT may be applicable depending on your location.
+        Sign up during beta to lock in zero-fee transfers and help us shape the
+        future of global remittances.
       </Text>
     </Pricing>
   )
 }
 
+// 7. FAQ Section
 const FaqSection = () => {
-  return <Faq {...faq} />
+  return (
+    <Faq
+      title="Frequently Asked Questions"
+      items={[
+        {
+          q: 'How does Kipu offer near-zero fees?',
+          a:
+            'Our AI matching engine pairs users who want to exchange currencies in opposite directions. This “netting” effect drastically reduces liquidity requirements and fees.',
+        },
+        {
+          q: 'Is Kipu’s stablecoin (USDU) really backed 1:1 by USD?',
+          a:
+            'Yes. We hold reserves in segregated, highly liquid local assets and USD. Each USDU token is redeemable 1:1 for USD in supported regions.',
+        },
+        {
+          q: 'Which countries do you support first?',
+          a:
+            'We’re starting with the US–LATAM corridor (focus on Peru), followed by expansions to Mexico, India, and Australia.',
+        },
+        {
+          q: 'Are there any minimum or maximum transfer limits?',
+          a:
+            'During our beta, transfer limits may apply based on user KYC level and local regulatory guidelines. Check your dashboard for the latest details.',
+        },
+      ]}
+    />
+  )
 }
 
 export default Home
