@@ -16,7 +16,7 @@ export default {
       ),
     },
     {
-      name: 'Javier Mendoza',
+      name: 'Maria Mendoza',
       description: 'Small Business Owner, Mexico',
       avatar: '/static/images/avatar2.jpg', // Replace with real avatar if available
       children: (
@@ -28,7 +28,7 @@ export default {
       ),
     },
     {
-      name: 'Sophia Patel',
+      name: 'Karan Patel',
       description: 'Freelancer, India',
       avatar: '/static/images/avatar3.jpg', // Replace with real avatar if available
       children: (
