@@ -17,6 +17,8 @@
     "@fontsource-variable/inter": "^5.1.0",
     "@saas-ui/auth": "^3.4.0",
     "@saas-ui/react": "^2.9.0",
+    "@supabase/auth-helpers-nextjs": "latest",
+    "@supabase/supabase-js": "latest",
     "@svgr/webpack": "^8.1.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.11.1",

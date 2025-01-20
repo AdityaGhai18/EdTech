@@ -1,15 +1,15 @@
 "use client";
-import { Box, Center, Stack, Text } from '@chakra-ui/react'
-import { Auth } from '@saas-ui/auth'
+import { Box, Button, Center, FormControl, FormLabel, Input, Stack, Text, useToast } from '@chakra-ui/react'
 import { Link } from '@saas-ui/react'
-import { NextPage } from 'next'
 import NextLink from 'next/link'
 import { FaGithub, FaGoogle } from 'react-icons/fa'
-
-import { Features } from '#components/features'
 import { BackgroundGradient } from '#components/gradients/background-gradient'
 import { PageTransition } from '#components/motion/page-transition'
 import { Section } from '#components/section'
+import { Features } from '#components/features'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { supabase } from 'utils/supabase'
 import siteConfig from '#data/config'
 
 const providers = {
@@ -24,7 +24,51 @@ const providers = {
   },
 }
 
-const Login: NextPage = () => {
+const Signup = () => {
+  const router = useRouter()
+  const toast = useToast()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: undefined,
+          data: { email }
+        }
+      })
+
+      if (error) throw error
+
+      if (data.user) {
+        toast({
+          title: 'Account created successfully!',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        })
+        router.push('/')
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Section height="100vh" innerWidth="container.xl">
       <BackgroundGradient
@@ -65,30 +109,74 @@ const Login: NextPage = () => {
               features={siteConfig.signup.features.map((feature) => ({
                 iconPosition: 'left',
                 variant: 'left-icon',
-
                 ...feature,
               }))}
             />
           </Box>
           <Center height="100%" flex="1">
             <Box width="container.sm" pt="8" px="8">
-              <Auth
-                view="signup"
-                title={siteConfig.signup.title}
-                providers={providers}
-                loginLink={<Link href="/login">Log in</Link>}
-              >
-                <Text color="muted" fontSize="sm">
-                  By signing up you agree to our{' '}
-                  <Link href={siteConfig.termsUrl} color="white">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link href={siteConfig.privacyUrl} color="white">
-                    Privacy Policy
-                  </Link>
-                </Text>
-              </Auth>
+              <form onSubmit={handleSubmit}>
+                <Stack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel>Email</FormLabel>
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>Password</FormLabel>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </FormControl>
+                  <Button
+                    type="submit"
+                    colorScheme="primary"
+                    isLoading={loading}
+                    width="100%"
+                  >
+                    Sign Up
+                  </Button>
+                  
+                  <Stack spacing={4} mt={6}>
+                    <Button
+                      leftIcon={<FaGoogle />}
+                      width="100%"
+                      variant="outline"
+                      onClick={() => {}} // Disabled for now
+                    >
+                      Continue with Google
+                    </Button>
+                    <Button
+                      leftIcon={<FaGithub />}
+                      width="100%"
+                      variant="outline"
+                      onClick={() => {}} // Disabled for now
+                    >
+                      Continue with Github
+                    </Button>
+                  </Stack>
+                  
+                  <Center>
+                    <Link href="/login">Already have an account? Log in</Link>
+                  </Center>
+                  
+                  <Text color="muted" fontSize="sm" textAlign="center">
+                    By signing up you agree to our{' '}
+                    <Link href={siteConfig.termsUrl} color="primary.500">
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link href={siteConfig.privacyUrl} color="primary.500">
+                      Privacy Policy
+                    </Link>
+                  </Text>
+                </Stack>
+              </form>
             </Box>
           </Center>
         </Stack>
@@ -97,4 +185,4 @@ const Login: NextPage = () => {
   )
 }
 
-export default Login
+export default Signup
