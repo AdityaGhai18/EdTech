@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Box, Button, Center, FormControl, FormLabel, Heading, Input, Stack, Text, useToast } from '@chakra-ui/react'
 import { Link } from '@saas-ui/react'
 import { FaGithub, FaGoogle } from 'react-icons/fa'
@@ -13,6 +13,14 @@ import { supabase } from 'utils/supabase'
 import { Header } from '#components/layout/header'
 
 const Login = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  )
+}
+
+const LoginContent = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const toast = useToast()
