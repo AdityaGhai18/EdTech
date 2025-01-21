@@ -1,10 +1,20 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 
 export async function middleware(req: NextRequest) {
-  // Just pass through all requests
-  return NextResponse.next()
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session && req.nextUrl.pathname.startsWith('/api/protected')) {
+    return new NextResponse(
+      JSON.stringify({ message: 'authentication required' }),
+      { status: 401 }
+    )
+  }
+
+  return res
 }
 
 export const config = {
