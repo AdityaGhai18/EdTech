@@ -111,7 +111,7 @@ const Login = () => {
                 >
                   Continue with Google
                 </Button>
-                <Button
+                {/* <Button
                   leftIcon={<FaGithub />}
                   width="100%"
                   height="50px"
@@ -123,7 +123,7 @@ const Login = () => {
                   }}
                 >
                   Continue with Github
-                </Button>
+                </Button> */}
               </Stack>
 
               <Stack spacing={1} align="center">

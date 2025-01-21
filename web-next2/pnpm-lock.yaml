@@ -27,10 +27,10 @@ dependencies:
     specifier: ^2.9.0
     version: 2.9.0(@chakra-ui/react@2.10.1)(@emotion/react@11.13.3)(@emotion/styled@11.13.0)(framer-motion@11.11.1)(react-dom@18.3.1)(react@18.3.1)
   '@supabase/auth-helpers-nextjs':
-    specifier: ^0.10.0
+    specifier: latest
     version: 0.10.0(@supabase/supabase-js@2.48.0)
   '@supabase/supabase-js':
-    specifier: ^2.48.0
+    specifier: latest
     version: 2.48.0
   '@svgr/webpack':
     specifier: ^8.1.0
