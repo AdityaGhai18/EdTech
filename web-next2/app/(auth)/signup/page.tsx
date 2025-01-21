@@ -142,7 +142,7 @@ const Signup = () => {
                     Sign Up
                   </Button>
                   
-                  <Stack spacing={4} mt={6}>
+                  <Stack spacing={4}>
                     <Button
                       leftIcon={<FaGoogle />}
                       width="100%"
@@ -151,14 +151,14 @@ const Signup = () => {
                     >
                       Continue with Google
                     </Button>
-                    <Button
+                    {/* <Button
                       leftIcon={<FaGithub />}
                       width="100%"
                       variant="outline"
                       onClick={() => {}} // Disabled for now
                     >
                       Continue with Github
-                    </Button>
+                    </Button> */}
                   </Stack>
                   
                   <Center>

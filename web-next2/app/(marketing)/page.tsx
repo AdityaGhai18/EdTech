@@ -59,11 +59,11 @@ import pricing from '#data/pricing'
 import testimonials from '#data/testimonials'
 
 // 1. Updated Metadata
-export const meta: Metadata = {
-  title: 'Kipu – AI-Powered Global Remittances',
-  description:
-    'Send money across borders at near-zero cost with Kipu. Instant stablecoin transfers that eliminate hidden fees and wait times.',
-}
+// export const metadata: Metadata = {
+//   title: 'Kipu – AI-Powered Global Remittances',
+//   description:
+//     'Send money across borders at near-zero cost with Kipu. Instant stablecoin transfers that eliminate hidden fees and wait times.',
+// }
 
 const Home: NextPage = () => {
   return (
