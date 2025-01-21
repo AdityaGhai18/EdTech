@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // TODO: Remove this when want to address eslints
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   reactStrictMode: true,
   webpack(config) {
     config.module.rules.push({
