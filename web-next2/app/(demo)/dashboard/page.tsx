@@ -7,40 +7,22 @@ import { Header } from '#components/layout/header'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from 'utils/supabase'
+import ProtectedRoute from '#components/auth/protected-route'
 
 const Dashboard = () => {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log('Checking auth in dashboard...')
         const { data: { session } } = await supabase.auth.getSession()
-        console.log('Session check:', session)
-        
-        if (!session) {
-          if (retryCount < 3) {
-            console.log('No session, retrying...', retryCount)
-            setRetryCount(prev => prev + 1)
-            setTimeout(checkAuth, 1000)
-            return
-          }
-          console.log('No session after retries, redirecting to login')
-          window.location.replace('/login')
-          return
-        }
-
-        console.log('User authenticated:', session.user.email)
         setIsLoading(false)
       } catch (error) {
         console.error('Auth check error:', error)
-        window.location.replace('/login')
       }
     }
     checkAuth()
-  }, [retryCount])
+  }, [])
 
   if (isLoading) {
     return (
@@ -52,7 +34,7 @@ const Dashboard = () => {
   }
 
   return (
-    <>
+    <ProtectedRoute>
       <Header />
       <Section height="100vh">
         <BackgroundGradient 
@@ -70,7 +52,7 @@ const Dashboard = () => {
           </Center>
         </PageTransition>
       </Section>
-    </>
+    </ProtectedRoute>
   )
 }
 

@@ -8,7 +8,7 @@ import { PageTransition } from '#components/motion/page-transition'
 import { Section } from '#components/section'
 import { Features } from '#components/features'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from 'utils/supabase'
 import siteConfig from '#data/config'
 
@@ -31,6 +31,25 @@ const Signup = () => {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Check if already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        toast({
+          title: 'Already logged in',
+          description: 'Redirecting to dashboard...',
+          status: 'info',
+          duration: 2000,
+          isClosable: true,
+        })
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        router.push('/dashboard')
+      }
+    }
+    checkSession()
+  }, [router, toast])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -39,10 +58,6 @@ const Signup = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: undefined,
-          data: { email }
-        }
       })
 
       if (error) throw error
@@ -50,11 +65,12 @@ const Signup = () => {
       if (data.user) {
         toast({
           title: 'Account created successfully!',
+          description: 'Please check your email to verify your account.',
           status: 'success',
-          duration: 3000,
+          duration: 5000,
           isClosable: true,
         })
-        router.push('/')
+        router.push('/login')
       }
     } catch (error: any) {
       toast({

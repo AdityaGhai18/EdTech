@@ -7,23 +7,45 @@ import { BackgroundGradient } from '#components/gradients/background-gradient'
 import { PageTransition } from '#components/motion/page-transition'
 import { Section } from '#components/section'
 import { Footer } from '#components/layout/footer'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { supabase } from 'utils/supabase'
 import { Header } from '#components/layout/header'
 
 const Login = () => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const toast = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Check for active session and redirect
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        toast({
+          title: 'Already logged in',
+          description: 'Redirecting...',
+          status: 'info',
+          duration: 2000,
+          isClosable: true,
+        })
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Get return_to from URL or default to dashboard
+        const returnTo = searchParams.get('return_to') || '/dashboard'
+        router.push(returnTo)
+      }
+    }
+    checkSession()
+  }, [router, toast, searchParams])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
-      console.log('Starting login process...')
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -35,8 +57,6 @@ const Login = () => {
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       const { data: { session } } = await supabase.auth.getSession()
-      console.log('Session after login:', session)
-
       if (session) {
         toast({
           title: 'Success',
@@ -46,8 +66,9 @@ const Login = () => {
           isClosable: true,
         })
 
-        // Use router instead of window.location
-        router.push('/dashboard')
+        // Get return_to from URL or default to dashboard
+        const returnTo = searchParams.get('return_to') || '/dashboard'
+        router.push(returnTo)
       } else {
         throw new Error('Failed to establish session')
       }

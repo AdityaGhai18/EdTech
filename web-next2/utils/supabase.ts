@@ -7,21 +7,31 @@ export const supabase = createClient(
     auth: {
       persistSession: true,
       storageKey: 'supabase.auth.token',
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
       storage: {
         getItem: (key) => {
           if (typeof window !== 'undefined') {
-            return window.localStorage.getItem(key)
+            // Check for website_opened flag in sessionStorage
+            // sessionStorage clears when browser is closed
+            if (!sessionStorage.getItem('website_opened')) {
+              console.log('Fresh website visit - clearing auth')
+              localStorage.clear()
+              sessionStorage.setItem('website_opened', 'true')
+              return null
+            }
+            return localStorage.getItem(key)
           }
           return null
         },
         setItem: (key, value) => {
           if (typeof window !== 'undefined') {
-            window.localStorage.setItem(key, value)
+            localStorage.setItem(key, value)
           }
         },
         removeItem: (key) => {
           if (typeof window !== 'undefined') {
-            window.localStorage.removeItem(key)
+            localStorage.removeItem(key)
           }
         },
       },
