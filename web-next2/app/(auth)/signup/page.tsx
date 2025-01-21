@@ -29,6 +29,8 @@ const Signup = () => {
   const toast = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
 
   // Check if already logged in
@@ -55,23 +57,39 @@ const Signup = () => {
     setLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // 1. Sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
       })
 
-      if (error) throw error
+      if (authError) throw authError
 
-      if (data.user) {
-        toast({
-          title: 'Account created successfully!',
-          description: 'Please check your email to verify your account.',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        })
-        router.push('/login')
+      // 2. Create profile record
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              first_name: firstName,
+              last_name: lastName,
+              created_at: new Date(),
+              updated_at: new Date(),
+            }
+          ])
+
+        if (profileError) throw profileError
       }
+
+      toast({
+        title: 'Account created successfully!',
+        description: 'Please check your email to verify your account.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      })
+      router.push('/login')
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -134,6 +152,22 @@ const Signup = () => {
               <form onSubmit={handleSubmit}>
                 <Stack spacing={4}>
                   <FormControl isRequired>
+                    <FormLabel>First Name</FormLabel>
+                    <Input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>Last Name</FormLabel>
+                    <Input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
                     <FormLabel>Email</FormLabel>
                     <Input
                       type="email"
@@ -151,11 +185,12 @@ const Signup = () => {
                   </FormControl>
                   <Button
                     type="submit"
-                    colorScheme="primary"
+                    colorScheme="purple"
+                    size="lg"
+                    fontSize="md"
                     isLoading={loading}
-                    width="100%"
                   >
-                    Sign Up
+                    Sign up
                   </Button>
                   
                   <Stack spacing={4}>

@@ -1,5 +1,5 @@
 "use client";
-import { Box, Heading, Center, Spinner } from '@chakra-ui/react'
+import { Box, Heading, Center, Spinner, Text } from '@chakra-ui/react'
 import { BackgroundGradient } from '#components/gradients/background-gradient'
 import { Section } from '#components/section'
 import { PageTransition } from '#components/motion/page-transition'
@@ -10,28 +10,33 @@ import { supabase } from 'utils/supabase'
 import ProtectedRoute from '#components/auth/protected-route'
 
 const Dashboard = () => {
-  const [isLoading, setIsLoading] = useState(true)
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchProfile = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        setIsLoading(false)
+        
+        if (session) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+
+          if (error) throw error
+          setProfile(data)
+        }
       } catch (error) {
-        console.error('Auth check error:', error)
+        console.error('Error fetching profile:', error)
+      } finally {
+        setLoading(false)
       }
     }
-    checkAuth()
-  }, [])
 
-  if (isLoading) {
-    return (
-      <Center height="100vh" flexDirection="column" gap={4}>
-        <Spinner size="xl" />
-        <Heading size="md">Loading...</Heading>
-      </Center>
-    )
-  }
+    fetchProfile()
+  }, [])
 
   return (
     <ProtectedRoute>
@@ -47,8 +52,15 @@ const Dashboard = () => {
           bottom="0"
         />
         <PageTransition>
-          <Center height="full">
-            <Heading size="2xl">Dashboard</Heading>
+          <Center flexDirection="column" pt={8}>
+            <Heading size="lg" mb={8}>Dashboard</Heading>
+            {loading ? (
+              <Spinner size="xl" />
+            ) : (
+              <Heading size="2xl">
+                Welcome, {profile?.first_name} {profile?.last_name}!
+              </Heading>
+            )}
           </Center>
         </PageTransition>
       </Section>
