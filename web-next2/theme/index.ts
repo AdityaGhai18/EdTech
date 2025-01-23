@@ -30,6 +30,12 @@ export const theme = extendTheme(
     },
     fontSizes,
     components,
+    colors: {
+      navy: {
+        800: '#1a1f37',
+        900: '#0f1535',
+      }
+    },
   },
   baseTheme,
 )

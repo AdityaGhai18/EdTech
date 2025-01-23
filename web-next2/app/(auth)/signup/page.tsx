@@ -55,41 +55,54 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
     try {
-      // 1. Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Sign up user with auto confirm
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          }
+        }
       })
-
-      if (authError) throw authError
-
-      // 2. Create profile record
+      
+      if (signUpError) throw signUpError
+      
       if (authData.user) {
+        // Create profile without email field
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert([
-            {
-              id: authData.user.id,
-              first_name: firstName,
-              last_name: lastName,
-              created_at: new Date(),
-              updated_at: new Date(),
-            }
-          ])
+          .insert({
+            id: authData.user.id,
+            first_name: firstName,
+            last_name: lastName,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
 
         if (profileError) throw profileError
-      }
 
-      toast({
-        title: 'Account created successfully!',
-        description: 'Please check your email to verify your account.',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      })
-      router.push('/login')
+        // Create wallet
+        const { error: walletError } = await supabase
+          .from('cryptowallets')
+          .insert({
+            user_id: authData.user.id,
+            all_sc: {},
+            country: 'default'
+          })
+
+        if (walletError) throw walletError
+
+        toast({
+          title: 'Account created successfully!',
+          status: 'success',
+          duration: 3000,
+        })
+        
+        router.push('/dashboard')
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
