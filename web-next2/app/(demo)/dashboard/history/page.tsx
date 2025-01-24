@@ -11,10 +11,13 @@ import ProtectedRoute from '#components/auth/protected-route';
 // Define interfaces for our data types
 interface Transaction {
   id: string
-  date: string
+  user_id: string
   amount: number
-  status: 'completed' | 'pending' | 'failed'
-  recipient?: string
+  transaction_type: string
+  country_from: string
+  country_to: string
+  status: 'pending' | 'completed' | 'failed'
+  stablecoin_curr: string
   created_at: string
 }
 

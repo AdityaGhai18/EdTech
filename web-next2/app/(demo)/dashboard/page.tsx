@@ -15,11 +15,15 @@ import { useRouter } from 'next/navigation'
 // Define interfaces for our data types
 interface Transaction {
   id: string
-  date: string
+  user_id: string
   amount: number
-  status: 'completed' | 'pending' | 'failed'
-  recipient?: string
+  transaction_type: string
+  country_from: string
+  country_to: string
+  status: 'pending' | 'completed' | 'failed'
+  stablecoin_curr: string
   created_at: string
+  updated_at: string
 }
 
 interface StablecoinBalance {
@@ -75,6 +79,7 @@ const Dashboard = () => {
           supabase
             .from('transactions')
             .select('*')
+            .eq('user_id', session.user.id)
             .order('created_at', { ascending: false })
             .limit(5),
           supabase
