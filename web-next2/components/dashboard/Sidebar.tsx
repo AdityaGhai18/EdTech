@@ -15,6 +15,7 @@ import {
   FiDownload,
   FiClock,
   FiLogOut,
+  FiUser,
 } from 'react-icons/fi'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -114,6 +115,32 @@ export const Sidebar = () => {
           />
         ))}
       </VStack>
+      
+      <Flex
+        position="absolute"
+        bottom="12"
+        left="0"
+        right="0"
+        px="4"
+        cursor="pointer"
+         _hover={{
+          bg: 'whiteAlpha.100',
+        }}
+        onClick={() => router.push('/dashboard/profile')}
+        align="center"
+        mx="4"
+        borderRadius="lg"
+        p="2"
+        mb="5"
+      >
+        <Icon
+          mr="4"
+          fontSize="16"
+          as={FiUser}
+          color="gray.400"
+        />
+        <Text color="gray.400">Profile</Text>
+      </Flex>
 
       <Flex
         position="absolute"
@@ -126,6 +153,10 @@ export const Sidebar = () => {
         _hover={{
           bg: 'whiteAlpha.100',
         }}
+        align="center"
+        mx="4"
+        borderRadius="lg"
+        p="2"
       >
         <Icon
           mr="4"

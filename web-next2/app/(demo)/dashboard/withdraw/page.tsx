@@ -8,13 +8,13 @@ import { updateWalletBalance } from 'utils/wallet'
 import { supabase } from 'utils/supabase'
 import { useRouter } from 'next/navigation'
 
-const DepositPage = () => {
+const WithdrawPage = () => {
   const router = useRouter()
   const [stablecoin, setStablecoin] = useState('')
   const [amount, setAmount] = useState('')
   const toast = useToast()
 
-  const handleDeposit = async () => {
+  const handleWithdraw = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       
@@ -51,10 +51,10 @@ const DepositPage = () => {
         return
       }
 
-      await updateWalletBalance(session.user.id, stablecoin.toUpperCase(), numAmount)
+      await updateWalletBalance(session.user.id, stablecoin.toUpperCase(), -numAmount)
 
       toast({
-        title: 'Deposit successful',
+        title: 'Withdrawal successful',
         status: 'success',
         duration: 3000,
       })
@@ -62,9 +62,9 @@ const DepositPage = () => {
       router.push('/dashboard')
       
     } catch (error: any) {
-      console.error('Error depositing:', error)
+      console.error('Error withdrawing:', error)
       toast({
-        title: 'Error making deposit',
+        title: 'Error making withdrawal',
         description: error.message || 'Something went wrong',
         status: 'error',
         duration: 3000,
@@ -96,7 +96,7 @@ const DepositPage = () => {
           <PageTransition>
             <Box maxW="container.xl" mx="auto" px={8} py={8}>
               <Heading size="lg" mb={8} color="white">
-                Deposit Stablecoins
+                Withdraw Stablecoins
               </Heading>
 
               <VStack spacing={6} maxW="md" align="stretch">
@@ -130,9 +130,9 @@ const DepositPage = () => {
                 <Button 
                   colorScheme="purple" 
                   size="lg"
-                  onClick={handleDeposit}
+                  onClick={handleWithdraw}
                 >
-                  Buy Stablecoin
+                  Withdraw Stablecoin
                 </Button>
               </VStack>
             </Box>
@@ -143,4 +143,4 @@ const DepositPage = () => {
   )
 }
 
-export default DepositPage 
+export default WithdrawPage

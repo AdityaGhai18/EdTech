@@ -105,14 +105,21 @@ const Dashboard = () => {
   if (!profile) {
     return (
       <ProtectedRoute>
-        <Center height="100vh">
-          <Spinner 
-            size="xl" 
-            thickness="4px"
-            speed="0.65s"
-            color="purple.500"
-          />
-        </Center>
+        <Flex h="100vh">
+          <Sidebar />
+          <Center 
+            ml="240px" 
+            w="calc(100% - 240px)"
+            bg="gray.900"
+          >
+            <Spinner 
+              size="xl" 
+              thickness="4px"
+              speed="0.65s"
+              color="purple.500"
+            />
+          </Center>
+        </Flex>
       </ProtectedRoute>
     )
   }
