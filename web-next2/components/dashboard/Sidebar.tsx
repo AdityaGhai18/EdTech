@@ -92,6 +92,7 @@ export const Sidebar = () => {
     >
       <Flex px="4" pt="8" pb="4" align="center">
         <Logo
+          color="white"
           onClick={(e) => {
             if (window.location.pathname === '/') {
               e.preventDefault()
