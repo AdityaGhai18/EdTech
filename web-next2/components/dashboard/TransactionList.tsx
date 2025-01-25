@@ -51,7 +51,7 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
     const fetchCountries = async () => {
       try {
         const { data, error } = await supabase
-          .from<CountryRow>("countries")
+          .from<"countries", CountryRow>("countries")
           .select("code,name")
           .eq("is_active", true); // Only show active countries
 
@@ -129,7 +129,7 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
                 <Td>{new Date(tx.created_at).toLocaleDateString()}</Td>
                 <Td>
                   {tx.transaction_type.charAt(0).toUpperCase() +
-                    tx.transaction_type.slice(1)}
+                    tx.transaction_type.slice(1).split("_")[0]}
                 </Td>
                 <Td>${tx.amount.toFixed(2)}</Td>
                 <Td>{tx.stablecoin_curr}</Td>

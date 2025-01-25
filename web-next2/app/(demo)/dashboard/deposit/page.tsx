@@ -37,7 +37,7 @@ function getConversionRate(localCurrency: string) {
 interface CountryRow {
   code: string;       // e.g., 'US', 'PE'
   name: string;       // e.g., 'United States', 'Peru'
-  iso3?: string;      // e.g., 'USA', 'PER'
+  iso3?: string;
   currency_code?: string;
   is_active: boolean;
 }
@@ -151,10 +151,16 @@ const DepositPage = () => {
     setEstimatedStablecoin(estimate);
   }, [localCurrency, amountFiat]);
 
-  // ---- Event Handlers ----
+  // Utility: Get friendly name for the currently selected country code
+  // e.g. if sourceCountry='PE' -> 'Peru'
+  // If not found, fallback to empty string
+  const getSelectedCountryName = (): string => {
+    const c = countries.find((c) => c.code === sourceCountry);
+    return c ? c.name : "";
+  };
 
   // If user picks a country => filter bank accounts that match that country
-  // If the selected bank account doesn't match, we clear or auto-select first
+  // If the current selected account doesn't match, we clear or auto-select first
   const handleChangeCountry = (newCountry: string) => {
     setSourceCountry(newCountry);
 
@@ -230,6 +236,12 @@ const DepositPage = () => {
     setProcessingDeposit(true);
 
     try {
+      // Build the stablecoin name e.g. "USDU (Peru)" if sourceCountry="PE"
+      const friendlyCountryName = getSelectedCountryName(); // e.g. 'Peru'
+      const stablecoinName = friendlyCountryName
+        ? `USDU (${friendlyCountryName})`
+        : "USDU"; // fallback
+
       // 1) Insert a deposit transaction
       const insertTxRes = await supabase
         .from("transactions")
@@ -238,8 +250,8 @@ const DepositPage = () => {
           amount: estimatedStablecoin, // final stablecoin amount
           transaction_type: "deposit",
           country_from: sourceCountry,
-          country_to: "STABLECOIN", // or "USDU"
-          stablecoin_curr: "USDU",
+          country_to: "STABLECOIN", // or "Kipu Account"
+          stablecoin_curr: stablecoinName, // e.g. "USDU (Peru)"
           status: "pending", // or 'completed'
           reference_id: selectedBankAccount,
         })
@@ -250,19 +262,20 @@ const DepositPage = () => {
         throw insertTxRes.error;
       }
 
-      // 2) Update user's wallet
+      // 2) Update user's wallet (increment the "sourceCountry" key in all_sc)
       const { data: walletData, error: walletError } = await supabase
         .from("cryptowallets")
-        .select("*")
+        .select("all_sc")
         .eq("user_id", userId)
         .single();
 
       if (walletError) throw walletError;
 
       let all_sc = walletData?.all_sc || {};
-      const currentBalance = parseFloat(all_sc["USDU"] || 0);
+      // if it's not numeric or missing, fallback to 0
+      const currentBalance = parseFloat(all_sc[sourceCountry] || 0);
       const newBalance = currentBalance + estimatedStablecoin;
-      all_sc["USDU"] = newBalance;
+      all_sc[sourceCountry] = newBalance;
 
       // Update cryptowallet
       const updateWalletRes = await supabase
@@ -288,7 +301,7 @@ const DepositPage = () => {
         title: "Deposit successful",
         description: `Successfully deposited ${fiatNum} ${localCurrency} ≈ ${estimatedStablecoin.toFixed(
           2
-        )} USDU`,
+        )} ${stablecoinName}`,
         status: "success",
         duration: 4000,
       });
@@ -312,7 +325,12 @@ const DepositPage = () => {
       <Box minH="100vh" bg="gray.900">
         <Flex h="100vh">
           <Sidebar />
-          <Flex ml={{ base: 0, md: "240px" }} flex="1" align="center" justify="center">
+          <Flex
+            ml={{ base: 0, md: "240px" }}
+            flex="1"
+            align="center"
+            justify="center"
+          >
             <Spinner size="xl" thickness="4px" speed="0.65s" color="purple.500" />
           </Flex>
         </Flex>
@@ -409,11 +427,9 @@ const DepositPage = () => {
                     color="white"
                   >
                     <option value="USD">USD</option>
-                    {
-                    // TODO: Look if adding more currencies are needed
-                    /* <option value="PEN">PEN</option>
-                    <option value="EUR">EUR</option> */}
                     {/* Add more local currencies as needed */}
+                    <option value="PEN">PEN</option>
+                    <option value="EUR">EUR</option>
                   </Select>
                 </FormControl>
 

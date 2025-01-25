@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -27,10 +28,9 @@ import {
   FiUser,
 } from "react-icons/fi";
 import { supabase } from "utils/supabase";
-import ProtectedRoute from "#components/auth/protected-route"; // If desired, wrap the entire export
+import ProtectedRoute from "#components/auth/protected-route";
 import { StatCard } from "#components/dashboard/StatCard";
 import { TransactionList } from "#components/dashboard/TransactionList";
-import { Section } from "#components/section";
 import { PageTransition } from "#components/motion/page-transition";
 import { BackgroundGradient } from "#components/gradients/background-gradient";
 import { Sidebar } from "#components/dashboard/Sidebar";
@@ -52,8 +52,6 @@ interface Transaction {
 interface CryptoWallet {
   id: string;
   user_id: string;
-  country: string;
-  stablecoin_balance?: number; // optional if you only store in `all_sc`
   all_sc?: { [key: string]: number };
 }
 
@@ -64,9 +62,21 @@ interface DashboardStats {
   userCount: number;
 }
 
+interface Profile {
+  first_name: string;
+  last_name: string;
+  kyc_level?: string;
+}
+
+interface CountryRow {
+  code: string;    // 'PE'
+  name: string;    // 'Peru'
+  is_active: boolean;
+}
+
 const Dashboard = () => {
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<CryptoWallet | null>(null);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -77,7 +87,9 @@ const Dashboard = () => {
     userCount: 0,
   });
 
-  // Fetch data on mount
+  // For friendly names
+  const [countryMap, setCountryMap] = useState<Record<string, string>>({});
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -86,12 +98,11 @@ const Dashboard = () => {
         } = await supabase.auth.getSession();
 
         if (!session) {
-          // If no session, redirect to login (or handle however you'd like)
           router.push("/login");
           return;
         }
 
-        // Fetch profile, wallet, last 5 transactions, and platform stats in parallel
+        // 1) Fetch profile, wallet, transactions, stats in parallel
         const [profileRes, walletRes, txRes, statsRes] = await Promise.all([
           supabase
             .from("profiles")
@@ -100,7 +111,7 @@ const Dashboard = () => {
             .single(),
           supabase
             .from("cryptowallets")
-            .select("*")
+            .select("id, user_id, all_sc")
             .eq("user_id", session.user.id)
             .single(),
           supabase
@@ -109,19 +120,35 @@ const Dashboard = () => {
             .eq("user_id", session.user.id)
             .order("created_at", { ascending: false })
             .limit(5),
-          // This RPC must be defined in your DB (function get_dashboard_stats())
           supabase.rpc("get_dashboard_stats"),
         ]);
 
         if (profileRes.error) throw profileRes.error;
         setProfile(profileRes.data);
 
-        if (!walletRes.error) setWallet(walletRes.data);
-        if (!txRes.error && txRes.data) setTransactions(txRes.data);
+        if (!walletRes.error) {
+          setWallet(walletRes.data);
+        }
+        if (!txRes.error && txRes.data) {
+          setTransactions(txRes.data);
+        }
 
-        // If your function returns null or an error, fallback
+        // statsRes often returns an array with 1 row
         if (!statsRes.error && statsRes.data && statsRes.data.length > 0) {
-          setStats(statsRes.data[0]); 
+          setStats(statsRes.data[0]);
+        }
+
+        // 2) Fetch countries for friendly region names
+        const { data: cData, error: cErr } = await supabase
+          .from<"countries", CountryRow>("countries")
+          .select("code,name")
+          .eq("is_active", true);
+        if (!cErr && cData) {
+          const map: Record<string, string> = {};
+          cData.forEach((c) => {
+            map[c.code] = c.name;
+          });
+          setCountryMap(map);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -133,9 +160,9 @@ const Dashboard = () => {
     fetchData();
   }, [router]);
 
-  // Renders the stablecoin balances for each coin in `all_sc`
+  // Renders stablecoin balances from all_sc with friendly names
   const renderStablecoinCards = () => {
-    if (!wallet?.all_sc || Object.keys(wallet.all_sc).length === 0) {
+    if (!wallet?.all_sc) {
       return (
         <StatCard
           title="No Stablecoins"
@@ -143,22 +170,58 @@ const Dashboard = () => {
           icon={FiDollarSign}
           iconColor="gray.400"
           isEmptyState
-          onClick={() => router.push("/deposit")} // Link to your Deposit page
+          onClick={() => router.push("/deposit")}
         />
       );
     }
 
-    return Object.entries(wallet.all_sc).map(([coin, balance]) => (
-      <StatCard
-        key={coin}
-        title={`${coin} Balance`}
-        value={`$${balance.toLocaleString()}`}
-        icon={FiDollarSign}
-        iconColor="green.500"
-      />
-    ));
-  };
+    const entries = Object.entries(wallet.all_sc)
+      // Only keep those with > 0
+      .filter(([_, bal]) => (bal as number) > 0)
+      .map(([regionCode, bal]) => {
+        // e.g. regionCode='PE', bal=50
+        const friendlyName = countryMap[regionCode] || regionCode; // e.g. "Peru"
+        return {
+          regionCode,
+          friendlyName,
+          balance: bal as number,
+        };
+      });
 
+    if (entries.length === 0) {
+      // Means every region was 0 or no all_sc
+      return (
+        <StatCard
+          title="No Stablecoins"
+          value="Get Started"
+          icon={FiDollarSign}
+          iconColor="gray.400"
+          isEmptyState
+          onClick={() => router.push("/dashboard/deposit")}
+        />
+      );
+    }
+
+    return entries.map(({ regionCode, friendlyName, balance }) => {
+      // Make sure balance is numeric, not a string
+      const numericBalance =
+        typeof balance === "string" ? parseFloat(balance) : balance;
+    
+      return (
+        <StatCard
+          key={regionCode}
+          title={`USDU (${friendlyName})`}
+          value={`$${numericBalance.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`}
+          icon={FiDollarSign}
+          iconColor="green.500"
+        />
+      );
+    });
+    
+  }
   if (loading) {
     return (
       <Box minH="100vh" bg="gray.900">
@@ -173,7 +236,6 @@ const Dashboard = () => {
   }
 
   if (!profile) {
-    // If profile failed to load or user is not logged in
     return (
       <Box minH="100vh" bg="gray.900">
         <Flex h="100vh" alignItems="center" justifyContent="center">
@@ -211,7 +273,7 @@ const Dashboard = () => {
                 Welcome, {profile.first_name} {profile.last_name}!
               </Heading>
 
-              {/* Show alert if KYC is incomplete */}
+              {/* If user is not KYC verified, show alert */}
               {profile.kyc_level !== "verified" && (
                 <Alert status="info" mb={6} borderRadius="md">
                   <AlertIcon />
@@ -219,7 +281,7 @@ const Dashboard = () => {
                 </Alert>
               )}
 
-              {/* Quick Platform Stats (optional) */}
+              {/* Quick Platform Stats */}
               <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4} mb={8}>
                 <StatCard
                   title="Total Transfers"
@@ -247,7 +309,7 @@ const Dashboard = () => {
                 />
               </SimpleGrid>
 
-              {/* Quick Actions row */}
+              {/* Quick Actions */}
               <HStack spacing={4} mb={8} wrap="wrap">
                 <Button
                   leftIcon={<FiArrowDownCircle />}
@@ -303,11 +365,7 @@ const Dashboard = () => {
               <Heading size="md" color="white" mb={4}>
                 Your Balances
               </Heading>
-              <SimpleGrid
-                columns={{ base: 1, md: 2, lg: 3 }}
-                spacing={6}
-                mb={8}
-              >
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={8}>
                 {renderStablecoinCards()}
               </SimpleGrid>
 

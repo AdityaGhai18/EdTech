@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -12,8 +13,7 @@ import {
   useToast,
   Select,
   Spinner,
-  Alert,
-  AlertIcon,
+  Text,
 } from "@chakra-ui/react";
 import { Sidebar } from "#components/dashboard/Sidebar";
 import { PageTransition } from "#components/motion/page-transition";
@@ -25,27 +25,39 @@ import { useRouter } from "next/navigation";
 interface CryptoWallet {
   id: string;
   user_id: string;
-  country: string;
-  all_sc?: { [key: string]: number }; // e.g. { USDU: 100, EURC: 50 }
+  all_sc?: { [regionCode: string]: number | string }; // If it can be string or number
 }
 
-const TransferPage = () => {
+// Minimal shape for countries table
+interface CountryRow {
+  code: string; // e.g. 'PE'
+  name: string; // e.g. 'Peru'
+  is_active: boolean;
+}
+
+export default function TransferPage() {
   const router = useRouter();
   const toast = useToast();
 
   const [loading, setLoading] = useState(true);
   const [wallet, setWallet] = useState<CryptoWallet | null>(null);
 
+  // Countries from Supabase
+  const [countries, setCountries] = useState<CountryRow[]>([]);
+
   // Form fields
   const [stablecoin, setStablecoin] = useState("USDU");
-  const [countryFrom, setCountryFrom] = useState("");
+  const [countryFrom, setCountryFrom] = useState(""); // e.g. 'PE'
   const [countryTo, setCountryTo] = useState("");
   const [amount, setAmount] = useState("");
+
+  // For UI display of the origin's numeric balance
+  const [originBalance, setOriginBalance] = useState<number | string>(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Check session
+        // Check if user is authenticated
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -61,20 +73,30 @@ const TransferPage = () => {
           return;
         }
 
-        // Fetch user’s wallet
+        // 1) Fetch user’s wallet
         const { data: walletData, error: walletError } = await supabase
           .from("cryptowallets")
           .select("*")
           .eq("user_id", session.user.id)
           .single();
-
         if (walletError) throw walletError;
+
         setWallet(walletData);
+
+        // 2) Fetch countries for friendly names
+        const { data: cData, error: cErr } = await supabase
+          .from<CountryRow>("countries")
+          .select("code, name")
+          .eq("is_active", true)
+          .order("name", { ascending: true });
+        if (cErr) throw cErr;
+
+        setCountries(cData || []);
       } catch (error: any) {
-        console.error("Error loading wallet data:", error);
+        console.error("Error loading data:", error);
         toast({
           title: "Error",
-          description: error.message || "Could not load wallet data",
+          description: error.message || "Could not load data",
           status: "error",
           duration: 4000,
         });
@@ -85,6 +107,24 @@ const TransferPage = () => {
 
     fetchData();
   }, [router, toast]);
+
+  // Fired when user selects a new origin country
+  const handleCountryFromChange = (code: string) => {
+    setCountryFrom(code);
+
+    // Recompute & display balance for that region
+    if (!wallet?.all_sc) {
+      setOriginBalance(0);
+      return;
+    }
+    const rawBal = wallet.all_sc[code] ?? 0; // could be number or string
+    setOriginBalance(rawBal);
+
+    // If user had already selected the same country for 'countryTo', reset
+    if (countryTo === code) {
+      setCountryTo("");
+    }
+  };
 
   const handleCreateTransferRequest = async () => {
     try {
@@ -102,7 +142,7 @@ const TransferPage = () => {
         return;
       }
 
-      // 1) Validation
+      // Validate
       if (!stablecoin || !countryFrom || !countryTo || !amount) {
         toast({
           title: "Missing fields",
@@ -124,31 +164,37 @@ const TransferPage = () => {
         return;
       }
 
+      // Check user’s region balance
       if (!wallet?.all_sc) {
         toast({
           title: "No stablecoin wallet",
-          description: "Your cryptowallet has no balances. Please deposit first.",
+          description: "You have no balances. Please deposit first.",
           status: "error",
           duration: 3000,
         });
         return;
       }
 
-      // 2) Check user’s stablecoin balance
-      const coin = stablecoin.toUpperCase();
-      const currentBalance = wallet.all_sc[coin] || 0;
-      if (currentBalance < numericAmount) {
+      const availableBalRaw = wallet.all_sc[countryFrom] ?? 0;
+      // Convert to number if needed
+      const availableBal =
+        typeof availableBalRaw === "string"
+          ? parseFloat(availableBalRaw)
+          : availableBalRaw;
+
+      if (availableBal < numericAmount) {
         toast({
           title: "Insufficient Balance",
-          description: `Your ${coin} balance is only ${currentBalance}. Please deposit or reduce the transfer amount.`,
+          description: `Your balance in ${countryFrom} is only ${availableBal}.`,
           status: "error",
           duration: 4000,
         });
         return;
       }
 
-      // 3) Insert new request in `transfer_requests`
-      const { data, error } = await supabase
+      // Insert new request
+      const coin = stablecoin.toUpperCase();
+      const { data: inserted, error } = await supabase
         .from("transfer_requests")
         .insert({
           user_id: session.user.id,
@@ -158,18 +204,10 @@ const TransferPage = () => {
           country_to: countryTo,
           status: "open",
         })
-        .select("id") // Return the ID of the newly inserted request
+        .select("id")
         .single();
 
       if (error) throw error;
-
-      // 4) [Optional] Lock funds (subtract from user’s wallet).
-      // For the MVP, we skip immediate deduction. If you want to do so:
-      // wallet.all_sc[coin] = currentBalance - numericAmount;
-      // await supabase
-      //   .from("cryptowallets")
-      //   .update({ all_sc: wallet.all_sc })
-      //   .eq("id", wallet.id);
 
       toast({
         title: "Transfer request created",
@@ -178,8 +216,7 @@ const TransferPage = () => {
         duration: 2500,
       });
 
-      // 5) Redirect user to the transfer-match page, passing the new request ID
-      router.push(`/dashboard/transfer-match?requestId=${data.id}`);
+      router.push(`/dashboard/transfer-match?requestId=${inserted.id}`);
     } catch (error: any) {
       console.error("Error creating transfer request:", error);
       toast({
@@ -196,13 +233,31 @@ const TransferPage = () => {
       <Box minH="100vh" bg="gray.900">
         <Flex h="100vh">
           <Sidebar />
-          <Flex ml={{ base: 0, md: "240px" }} flex="1" align="center" justify="center">
+          <Flex
+            ml={{ base: 0, md: "240px" }}
+            flex="1"
+            align="center"
+            justify="center"
+          >
             <Spinner size="xl" thickness="4px" speed="0.65s" color="purple.500" />
           </Flex>
         </Flex>
       </Box>
     );
   }
+
+  // originOptions = all countries from supabase
+  const originOptions = countries;
+
+  // Filter out chosen origin from the destination
+  const destinationOptions = countries.filter((c) => c.code !== countryFrom);
+
+  // Look up origin's "beautiful" name for the "Balance in ..."
+  const originCountry = countries.find((c) => c.code === countryFrom);
+
+  // Convert originBalance to a real number for consistent formatting
+  const numericBalance =
+    typeof originBalance === "string" ? parseFloat(originBalance) : originBalance;
 
   return (
     <Box minH="100vh" bg="gray.900">
@@ -242,30 +297,45 @@ const TransferPage = () => {
                     color="white"
                   >
                     <option value="USDU">USDU</option>
-                    {/* <option value="EURC">EURC</option> */}
-                    {/* Add more stablecoin options here */}
+                    {/* more stablecoins if needed */}
                   </Select>
                 </FormControl>
 
-                {/* Country From */}
+                {/* Origin Country */}
                 <FormControl isRequired>
                   <FormLabel color="white">From Country</FormLabel>
                   <Select
                     placeholder="Select origin country"
                     value={countryFrom}
-                    onChange={(e) => setCountryFrom(e.target.value)}
+                    onChange={(e) => handleCountryFromChange(e.target.value)}
                     bg="whiteAlpha.100"
                     color="white"
                   >
-                    <option value="US">United States</option>
-                    <option value="PE">Peru</option>
-                    <option value="MX">Mexico</option>
-                    <option value="BR">Brazil</option>
-                    {/* add more as needed */}
+                    {originOptions.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
-                {/* Country To */}
+                {/* Show "Balance in Peru: 123.45 USDU" if user selected an origin */}
+                {countryFrom && (
+                  <Box>
+                    <Text color="white" fontSize="sm">
+                      Balance in {originCountry?.name ?? countryFrom}:
+                      <Text as="span" fontWeight="bold" ml={1}>
+                        {numericBalance.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        USDU
+                      </Text>
+                    </Text>
+                  </Box>
+                )}
+
+                {/* Destination Country */}
                 <FormControl isRequired>
                   <FormLabel color="white">Destination Country</FormLabel>
                   <Select
@@ -274,12 +344,13 @@ const TransferPage = () => {
                     onChange={(e) => setCountryTo(e.target.value)}
                     bg="whiteAlpha.100"
                     color="white"
+                    disabled={!countryFrom} // can't pick until origin is chosen
                   >
-                    <option value="US">United States</option>
-                    <option value="PE">Peru</option>
-                    <option value="MX">Mexico</option>
-                    <option value="BR">Brazil</option>
-                    {/* add more as needed */}
+                    {destinationOptions.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
+                      </option>
+                    ))}
                   </Select>
                 </FormControl>
 
@@ -296,7 +367,11 @@ const TransferPage = () => {
                   />
                 </FormControl>
 
-                <Button colorScheme="purple" size="lg" onClick={handleCreateTransferRequest}>
+                <Button
+                  colorScheme="purple"
+                  size="lg"
+                  onClick={handleCreateTransferRequest}
+                >
                   Create Transfer Request
                 </Button>
               </VStack>
@@ -306,6 +381,4 @@ const TransferPage = () => {
       </Flex>
     </Box>
   );
-};
-
-export default TransferPage;
+}

@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -22,33 +23,56 @@ import { BackgroundGradient } from "#components/gradients/background-gradient";
 import { supabase } from "utils/supabase";
 import { useRouter } from "next/navigation";
 
-interface TransactionRow {
-  amount: number;
+interface BankAccount {
+  id: string;
+  user_id: string;
+  account_number: string;
+  bank_name?: string;
+  iban?: string;
+  country?: string; // e.g. 'US', 'PE'
+}
+
+interface CryptoWallet {
+  id: string;
+  user_id: string;
+  all_sc?: {
+    [region: string]: number | string; // Could be string or number
+  };
+}
+
+interface CountryRow {
+  code: string;  // 'PE'
+  name: string;  // 'Peru'
+  is_active: boolean;
 }
 
 export default function WithdrawPage() {
   const router = useRouter();
   const toast = useToast();
 
-  // Page state
+  // Loading states
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
-  // Data from Supabase
-  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  // Data
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [wallet, setWallet] = useState<CryptoWallet | null>(null);
 
-  // The net deposit balance we calculate from transactions
-  const [netDepositBalance, setNetDepositBalance] = useState(0);
+  // For friendly country names
+  const [countryMap, setCountryMap] = useState<Record<string, string>>({});
 
-  // Withdraw form fields
-  const [stablecoin, setStablecoin] = useState("USDU"); // default stablecoin
-  const [destinationCountry, setDestinationCountry] = useState("");
+  // For region-based withdrawal
+  const [regionBalances, setRegionBalances] = useState<{ region: string; balance: number }[]>([]);
+
+  // Selected form fields
+  const [selectedRegion, setSelectedRegion] = useState(""); // e.g. 'PE'
   const [selectedBankAccount, setSelectedBankAccount] = useState("");
   const [amountStablecoin, setAmountStablecoin] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // 1) Check user session
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -64,58 +88,69 @@ export default function WithdrawPage() {
           return;
         }
 
-        // 1) Load user’s bank accounts
+        // 2) Load bank accounts
         const { data: bankData, error: bankError } = await supabase
           .from("bank_accounts")
           .select("*")
           .eq("user_id", session.user.id);
 
         if (bankError) throw bankError;
-        setBankAccounts(bankData || []);
+        const userBankAccounts = bankData as BankAccount[];
+        setBankAccounts(userBankAccounts);
 
-        if (bankData && bankData.length > 0) {
-          setSelectedBankAccount(bankData[0].id);
-          setDestinationCountry(bankData[0].country || "");
+        // 3) Load cryptowallet
+        const { data: walletData, error: walletError } = await supabase
+          .from("cryptowallets")
+          .select("id, user_id, all_sc")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (walletError) throw walletError;
+        setWallet(walletData);
+
+        // 4) Build region balances (only nonzero).
+        //    Convert each balance to a number in case it's stored as string:
+        const all_sc = walletData?.all_sc || {};
+        const regionList = Object.entries(all_sc)
+          .filter(([_, bal]) => {
+            // Convert bal to number:
+            const numericBal = typeof bal === "string" ? parseFloat(bal) : bal;
+            return numericBal > 0;
+          })
+          .map(([region, bal]) => {
+            const numericBal = typeof bal === "string" ? parseFloat(bal) : bal;
+            return {
+              region,
+              balance: numericBal,
+            };
+          });
+        setRegionBalances(regionList);
+
+        // Auto-select first region if available
+        if (regionList.length > 0) {
+          setSelectedRegion(regionList[0].region);
+          // auto-select bank account in that region
+          const firstAcct = userBankAccounts.find(
+            (acct) => acct.country === regionList[0].region
+          );
+          if (firstAcct) setSelectedBankAccount(firstAcct.id);
         }
 
-        // 2) Calculate net deposit:
-        //    sum of completed deposits - sum of withdrawals (pending or completed)
+        // 5) Load countries for friendly names
+        const { data: countryData, error: cErr } = await supabase
+          .from<CountryRow>("countries")
+          .select("code,name")
+          .eq("is_active", true);
 
-        // --- Summation of completed deposits ---
-        const { data: depositRows, error: depositError } = await supabase
-          .from("transactions")
-          .select("amount")
-          .eq("user_id", session.user.id)
-          .eq("transaction_type", "deposit")
-          .eq("status", "completed");
+        if (cErr) throw cErr;
+        const map: Record<string, string> = {};
+        countryData?.forEach((c) => {
+          map[c.code] = c.name;
+        });
+        setCountryMap(map);
 
-        if (depositError) throw depositError;
-
-        const totalDeposits = (depositRows || []).reduce(
-          (acc: number, row: TransactionRow) => acc + row.amount,
-          0
-        );
-
-        // --- Summation of withdrawals that are pending or completed ---
-        const { data: withdrawRows, error: withdrawError } = await supabase
-          .from("transactions")
-          .select("amount,status")
-          .eq("user_id", session.user.id)
-          .eq("transaction_type", "withdraw")
-          .in("status", ["pending", "completed"]); // only these statuses count
-
-        if (withdrawError) throw withdrawError;
-
-        const totalWithdraws = (withdrawRows || []).reduce(
-          (acc: number, row: TransactionRow) => acc + row.amount,
-          0
-        );
-
-        // net deposit the user can withdraw from
-        const netBalance = totalDeposits - totalWithdraws;
-        setNetDepositBalance(netBalance);
       } catch (err: any) {
-        console.error("Error loading data for withdraw:", err);
+        console.error("Error loading withdraw data:", err);
         toast({
           title: "Error",
           description: err.message || "Could not load data for withdrawal",
@@ -130,10 +165,37 @@ export default function WithdrawPage() {
     fetchData();
   }, [toast, router]);
 
-  const handleWithdraw = async () => {
-    setProcessing(true);
+  // Convert region code -> friendly name, e.g. "PE" -> "Peru"
+  const getFriendlyName = (regionCode: string) => {
+    const countryName = countryMap[regionCode];
+    return countryName ? `USDU (${countryName})` : `USDU (${regionCode})`;
+  };
 
+  // If user picks a region, reset the bank account if it doesn't match
+  const handleChangeRegion = (newRegion: string) => {
+    setSelectedRegion(newRegion);
+    // find a bank account in that region
+    const firstAcct = bankAccounts.find((acct) => acct.country === newRegion);
+    if (firstAcct) {
+      setSelectedBankAccount(firstAcct.id);
+    } else {
+      setSelectedBankAccount("");
+    }
+  };
+
+  // If user picks a bank account => ensure region matches
+  const handleChangeBankAccount = (acctId: string) => {
+    setSelectedBankAccount(acctId);
+    const acct = bankAccounts.find((a) => a.id === acctId);
+    if (acct && acct.country) {
+      setSelectedRegion(acct.country);
+    }
+  };
+
+  const handleWithdraw = async () => {
     try {
+      setProcessing(true);
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -148,11 +210,10 @@ export default function WithdrawPage() {
         return;
       }
 
-      // Validate fields
-      if (!stablecoin || !destinationCountry || !selectedBankAccount || !amountStablecoin) {
+      if (!selectedRegion || !selectedBankAccount || !amountStablecoin) {
         toast({
           title: "Missing fields",
-          description: "Please fill in all fields",
+          description: "Please select region, bank account, and amount",
           status: "error",
           duration: 3000,
         });
@@ -170,28 +231,34 @@ export default function WithdrawPage() {
         return;
       }
 
-      // Check net deposit limit
-      if (amtNum > netDepositBalance) {
+      // Check region's current balance
+      const regionBalObj = regionBalances.find((r) => r.region === selectedRegion);
+      const regionBal = regionBalObj?.balance ?? 0;
+      if (amtNum > regionBal) {
         toast({
-          title: "Insufficient Net Deposits",
-          description: `You only have ${netDepositBalance.toFixed(2)} USDU in net deposits available`,
+          title: "Insufficient Balance",
+          // Use `.toLocaleString` with 2 decimals
+          description: `Your ${getFriendlyName(selectedRegion)} balance is only ${regionBal
+            .toFixed(2)
+            .toLocaleString()}.`,
           status: "error",
           duration: 4000,
         });
         return;
       }
 
-      // Insert new transaction with status='pending'
+      // Insert a withdrawal transaction
+      const friendly = getFriendlyName(selectedRegion);
       const { data: insertTx, error: insertError } = await supabase
         .from("transactions")
         .insert({
           user_id: session.user.id,
           amount: amtNum,
           transaction_type: "withdraw",
-          country_from: "STABLECOIN",
-          country_to: destinationCountry,
-          stablecoin_curr: stablecoin.toUpperCase(),
-          status: "pending", // or 'completed' if you auto-confirm
+          country_from: selectedRegion,
+          country_to: selectedRegion, // same region => local bank
+          stablecoin_curr: friendly,  // e.g. "USDU (Peru)"
+          status: "pending",
           reference_id: selectedBankAccount,
         })
         .select("*")
@@ -199,24 +266,44 @@ export default function WithdrawPage() {
 
       if (insertError) throw insertError;
 
-      // Optional: Mark immediately as 'completed' or let it remain 'pending'
-      // For MVP, let's just set it to 'completed' to simulate an instant withdrawal
-      const { error: updateTxError } = await supabase
+      if (!wallet) throw new Error("No wallet data loaded");
+
+      // Subtract from all_sc[selectedRegion]
+      const updatedAllSc = { ...(wallet.all_sc || {}) };
+      const currentBalRaw = updatedAllSc[selectedRegion] ?? 0;
+      // Convert to number
+      const currentBal = typeof currentBalRaw === "string" ? parseFloat(currentBalRaw) : currentBalRaw;
+      let newBal = currentBal - amtNum;
+      if (newBal < 0) newBal = 0;
+      updatedAllSc[selectedRegion] = newBal;
+
+      // Update cryptowallet
+      const { error: walletErr } = await supabase
+        .from("cryptowallets")
+        .update({ all_sc: updatedAllSc })
+        .eq("id", wallet.id);
+
+      if (walletErr) throw walletErr;
+
+      // Optionally mark transaction as 'completed'
+      const { error: txUpdateErr } = await supabase
         .from("transactions")
         .update({ status: "completed" })
         .eq("id", insertTx.id);
+      if (txUpdateErr) throw txUpdateErr;
 
-      if (updateTxError) throw updateTxError;
-
-      // Recalculate net deposit to reflect new withdrawal
-      const newNetDeposit = netDepositBalance - amtNum;
-      setNetDepositBalance(newNetDeposit);
+      // Update regionBalances in local state
+      const newBalances = regionBalances.map((r) => {
+        if (r.region === selectedRegion) {
+          return { ...r, balance: r.balance - amtNum };
+        }
+        return r;
+      });
+      setRegionBalances(newBalances);
 
       toast({
         title: "Withdrawal successful",
-        description: `You withdrew ${amtNum} USDU. Your new net deposit is ${newNetDeposit.toFixed(
-          2
-        )} USDU`,
+        description: `You withdrew ${amtNum.toFixed(2)} from ${friendly} balance.`,
         status: "success",
         duration: 4000,
       });
@@ -247,6 +334,11 @@ export default function WithdrawPage() {
       </Box>
     );
   }
+
+  // Filter bank accounts to the selected region
+  const filteredBankAccounts = bankAccounts.filter(
+    (acct) => acct.country === selectedRegion
+  );
 
   return (
     <Box minH="100vh" bg="gray.900">
@@ -283,74 +375,57 @@ export default function WithdrawPage() {
               )}
 
               <VStack spacing={6} align="stretch">
-                {/* Show net deposit available */}
-                <Box>
-                  <Text color="white">
-                    Net Balance Available: {" "}
-                    <Text as="span" fontWeight="bold">
-                      {netDepositBalance.toFixed(2)} USDU
-                    </Text>
-                  </Text>
-                </Box>
-
-                {/* Stablecoin */}
                 <FormControl isRequired>
-                  <FormLabel color="white">Stablecoin</FormLabel>
+                  <FormLabel color="white">Select a Region</FormLabel>
                   <Select
-                    value={stablecoin}
-                    onChange={(e) => setStablecoin(e.target.value)}
+                    placeholder="Pick region balance"
+                    value={selectedRegion}
+                    onChange={(e) => handleChangeRegion(e.target.value)}
                     bg="whiteAlpha.100"
                     color="white"
                   >
-                    <option value="USDU">USDU</option>
-                    {/* <option value="EURC">EURC</option> */}
-                    {/* add more stablecoin options here */}
+                    {regionBalances.map(({ region, balance }) => {
+                      // If balance might be a string, parse it
+                      const numericBal = typeof balance === "string" ? parseFloat(balance) : balance;
+                      // Show exactly 2 decimals:
+                      const displayedBal = numericBal.toFixed(2);
+
+                      return (
+                        <option key={region} value={region}>
+                          {getFriendlyName(region)} - {displayedBal}
+                        </option>
+                      );
+                    })}
                   </Select>
                 </FormControl>
 
-                {/* Destination Country */}
                 <FormControl isRequired>
-                  <FormLabel color="white">Destination Country</FormLabel>
-                  <Select
-                    placeholder="Select a country"
-                    value={destinationCountry}
-                    onChange={(e) => setDestinationCountry(e.target.value)}
-                    bg="whiteAlpha.100"
-                    color="white"
-                  >
-                    <option value="US">United States</option>
-                    <option value="PE">Peru</option>
-                    <option value="MX">Mexico</option>
-                    <option value="BR">Brazil</option>
-                    {/* etc. */}
-                  </Select>
-                </FormControl>
-
-                {/* Bank Account */}
-                <FormControl isRequired>
-                  <FormLabel color="white">Linked Bank Account</FormLabel>
+                  <FormLabel color="white">Bank Account</FormLabel>
                   <Select
                     value={selectedBankAccount}
-                    onChange={(e) => setSelectedBankAccount(e.target.value)}
+                    onChange={(e) => handleChangeBankAccount(e.target.value)}
                     bg="whiteAlpha.100"
                     color="white"
-                    disabled={bankAccounts.length === 0}
+                    disabled={bankAccounts.length === 0 || !selectedRegion}
                   >
-                    {bankAccounts.map((acct) => (
-                      <option key={acct.id} value={acct.id}>
-                        {acct.bank_name
-                          ? `${acct.bank_name} - ${acct.account_number}`
-                          : `Account: ${acct.account_number}`}
-                      </option>
-                    ))}
+                    {filteredBankAccounts.length === 0 ? (
+                      <option value="">No bank account in this region</option>
+                    ) : (
+                      filteredBankAccounts.map((acct) => (
+                        <option key={acct.id} value={acct.id}>
+                          {acct.bank_name
+                            ? `${acct.bank_name} - ${acct.account_number}`
+                            : `Account: ${acct.account_number}`}
+                        </option>
+                      ))
+                    )}
                   </Select>
                 </FormControl>
 
-                {/* Amount (stablecoin) */}
                 <FormControl isRequired>
-                  <FormLabel color="white">Amount (Stablecoin)</FormLabel>
+                  <FormLabel color="white">Amount to Withdraw</FormLabel>
                   <Input
-                    placeholder="Enter amount in stablecoin"
+                    placeholder="Enter amount"
                     value={amountStablecoin}
                     onChange={(e) => setAmountStablecoin(e.target.value)}
                     type="number"
@@ -364,9 +439,9 @@ export default function WithdrawPage() {
                   size="lg"
                   onClick={handleWithdraw}
                   isLoading={processing}
-                  isDisabled={bankAccounts.length === 0}
+                  isDisabled={bankAccounts.length === 0 || regionBalances.length === 0}
                 >
-                  Withdraw Now
+                  Withdraw
                 </Button>
               </VStack>
             </Box>
