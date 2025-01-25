@@ -90,20 +90,19 @@ export const Sidebar = () => {
       borderRight="1px"
       borderRightColor="gray.800"
     >
-      <Flex px="4" pt="8" pb="4" align="center">
-        <Logo
-          color="white"
-          onClick={(e) => {
-            if (window.location.pathname === '/') {
-              e.preventDefault()
-              window.scrollTo({
-                top: 0,
-                behavior: 'smooth',
-              })
-            }
-          }}
-        />
-      </Flex>
+<Flex px="4" pt="8" pb="4" align="center">
+  <Logo
+    onClick={(e) => {
+      // Example logic to scroll only if on home page
+      if (window.location.pathname === '/') {
+        e.preventDefault()
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }}
+    isSidebar={true}
+  />
+</Flex>
+
 
       <VStack spacing={1} align="stretch" mt="6">
         {menuItems.map((item) => (

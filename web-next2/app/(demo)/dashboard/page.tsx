@@ -1,33 +1,40 @@
 "use client";
-import { useEffect, useState } from 'react'
-import { Box, SimpleGrid, Heading, Center, Spinner, Flex } from '@chakra-ui/react'
-import { FiDollarSign, FiUsers, FiActivity, FiGlobe } from 'react-icons/fi'
-import { supabase } from 'utils/supabase'
-import ProtectedRoute from '#components/auth/protected-route'
-import { StatCard } from '#components/dashboard/StatCard'
-import { TransactionList } from '#components/dashboard/TransactionList'
-import { Section } from '#components/section'
-import { PageTransition } from '#components/motion/page-transition'
-import { BackgroundGradient } from '#components/gradients/background-gradient'
-import { Sidebar } from '#components/dashboard/Sidebar'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react";
+import {
+  Box,
+  SimpleGrid,
+  Heading,
+  Center,
+  Spinner,
+  Flex,
+} from "@chakra-ui/react";
+import { FiDollarSign, FiUsers, FiActivity, FiGlobe } from "react-icons/fi";
+import { supabase } from "utils/supabase";
+import ProtectedRoute from "#components/auth/protected-route";
+import { StatCard } from "#components/dashboard/StatCard";
+import { TransactionList } from "#components/dashboard/TransactionList";
+import { Section } from "#components/section";
+import { PageTransition } from "#components/motion/page-transition";
+import { BackgroundGradient } from "#components/gradients/background-gradient";
+import { Sidebar } from "#components/dashboard/Sidebar";
+import { useRouter } from "next/navigation";
 
 // Define interfaces for our data types
 interface Transaction {
-  id: string
-  user_id: string
-  amount: number
-  transaction_type: string
-  country_from: string
-  country_to: string
-  status: 'pending' | 'completed' | 'failed'
-  stablecoin_curr: string
-  created_at: string
-  updated_at: string
+  id: string;
+  user_id: string;
+  amount: number;
+  transaction_type: string;
+  country_from: string;
+  country_to: string;
+  status: "pending" | "completed" | "failed";
+  stablecoin_curr: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface StablecoinBalance {
-  [key: string]: number;  // e.g. { "USDU": 100, "EURC": 50 }
+  [key: string]: number; // e.g. { "USDU": 100, "EURC": 50 }
 }
 
 interface CryptoWallet {
@@ -46,87 +53,91 @@ interface DashboardStats {
 }
 
 const Dashboard = () => {
-  const router = useRouter()
-  const [profile, setProfile] = useState<any>(null)
-  const [wallet, setWallet] = useState<CryptoWallet | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const router = useRouter();
+  const [profile, setProfile] = useState<any>(null);
+  const [wallet, setWallet] = useState<CryptoWallet | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalTransfers: 0,
     activeCorridors: 0,
     totalVolume: 0,
-    userCount: 0
-  })
+    userCount: 0,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (!session) return
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        const [profileResponse, walletResponse, transactionsResponse, statsResponse] = await Promise.all([
+        if (!session) return;
+
+        const [
+          profileResponse,
+          walletResponse,
+          transactionsResponse,
+          statsResponse,
+        ] = await Promise.all([
           supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
             .single(),
           supabase
-            .from('cryptowallets')
-            .select('*')
-            .eq('user_id', session.user.id)
+            .from("cryptowallets")
+            .select("*")
+            .eq("user_id", session.user.id)
             .single(),
           supabase
-            .from('transactions')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .order('created_at', { ascending: false })
+            .from("transactions")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false })
             .limit(5),
-          supabase
-            .rpc('get_dashboard_stats')
-        ])
+          supabase.rpc("get_dashboard_stats"),
+        ]);
 
-        if (profileResponse.error) throw profileResponse.error
-        
-        setProfile(profileResponse.data)
-        setWallet(walletResponse.data)
-        setTransactions(transactionsResponse.data || [])
-        setStats(statsResponse.data || {
-          totalTransfers: 0,
-          activeCorridors: 0,
-          totalVolume: 0,
-          userCount: 0
-        })
+        if (profileResponse.error) throw profileResponse.error;
+
+        setProfile(profileResponse.data);
+        setWallet(walletResponse.data);
+        setTransactions(transactionsResponse.data || []);
+        setStats(
+          statsResponse.data || {
+            totalTransfers: 0,
+            activeCorridors: 0,
+            totalVolume: 0,
+            userCount: 0,
+          }
+        );
       } catch (error) {
-        console.error('Error fetching data:', error)
+        console.error("Error fetching data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
-
+    fetchData();
+  }, []);
+ 
   if (!profile) {
     return (
-      <ProtectedRoute>
+      <Box minH="100vh" bg="gray.900">
         <Flex h="100vh">
           <Sidebar />
-          <Center 
-            ml="240px" 
-            w="calc(100% - 240px)"
-            bg="gray.900"
-          >
-            <Spinner 
-              size="xl" 
+          <Center ml="240px" w="calc(100% - 240px)" bg="gray.900">
+            <Spinner
+              size="xl"
               thickness="4px"
               speed="0.65s"
               color="purple.500"
             />
           </Center>
         </Flex>
-      </ProtectedRoute>
-    )
+      </Box>
+    );
   }
 
   const renderStablecoinCards = () => {
@@ -138,7 +149,7 @@ const Dashboard = () => {
           icon={FiDollarSign}
           iconColor="gray.400"
           isEmptyState
-          onClick={() => router.push('/dashboard/deposit')}
+          onClick={() => router.push("/dashboard/deposit")}
         />
       );
     }
@@ -160,7 +171,7 @@ const Dashboard = () => {
           icon={FiDollarSign}
           iconColor="purple.500"
           isEmptyState
-          onClick={() => router.push('/dashboard/deposit')}
+          onClick={() => router.push("/dashboard/deposit")}
         />
       </>
     );
@@ -170,15 +181,15 @@ const Dashboard = () => {
     <Box minH="100vh" bg="gray.900">
       <Flex h="full">
         <Sidebar />
-        <Box 
+        <Box
           as="main"
-          ml="240px" 
-          w="calc(100% - 240px)" 
+          ml="240px"
+          w="calc(100% - 240px)"
           minH="100vh"
           bg="gray.900"
           position="relative"
         >
-          <BackgroundGradient 
+          <BackgroundGradient
             zIndex="0"
             width="full"
             position="absolute"
@@ -193,7 +204,11 @@ const Dashboard = () => {
                 Welcome, {profile.first_name} {profile.last_name}!
               </Heading>
 
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+              <SimpleGrid
+                columns={{ base: 1, md: 2, lg: 4 }}
+                spacing={6}
+                mb={8}
+              >
                 {renderStablecoinCards()}
               </SimpleGrid>
 
@@ -203,7 +218,7 @@ const Dashboard = () => {
         </Box>
       </Flex>
     </Box>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

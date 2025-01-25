@@ -40,6 +40,9 @@ const ProfilePage = () => {
         setProfile(profileResponse.data)
         setFirstName(profileResponse.data?.first_name || '')
         setLastName(profileResponse.data?.last_name || '')
+        if (session?.user?.email) {
+          setProfile(prevProfile => ({ ...prevProfile, email: session.user.email }));
+        }
       } catch (error: any) {
         console.error('Error fetching profile:', error)
         toast({
@@ -159,6 +162,7 @@ const ProfilePage = () => {
                     onChange={(e) => setFirstName(e.target.value)}
                     bg="whiteAlpha.100"
                     color="white"
+                    isReadOnly
                   />
                 </FormControl>
 
@@ -170,6 +174,7 @@ const ProfilePage = () => {
                     onChange={(e) => setLastName(e.target.value)}
                     bg="whiteAlpha.100"
                     color="white"
+                    isReadOnly
                   />
                 </FormControl>
 
@@ -178,8 +183,8 @@ const ProfilePage = () => {
                   <Input
                     value={profile?.email}
                     isReadOnly
-                    bg="gray.700"
-                    color="gray.400"
+                    bg="whiteAlpha.100"
+                    color="white"
                   />
                 </FormControl>
 

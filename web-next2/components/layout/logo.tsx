@@ -8,9 +8,10 @@ import siteConfig from '#data/config'
 export interface LogoProps {
   href?: string
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
+  isSidebar?: boolean
 }
 
-export const Logo = ({ href = '/', onClick }: LogoProps) => {
+export const Logo = ({ href = '/', onClick, isSidebar = false }: LogoProps) => {
   let logo
   if (siteConfig.logo) {
     logo = <Box as={siteConfig.logo} height="32px" mt="-4px" />
@@ -30,6 +31,8 @@ export const Logo = ({ href = '/', onClick }: LogoProps) => {
         p="1"
         borderRadius="sm"
         onClick={onClick}
+        color={isSidebar ? 'white' : 'white'}
+        _hover={{ textDecoration: 'none' }}
       >
         {logo}
         <VisuallyHidden>{siteConfig.seo?.title}</VisuallyHidden>
