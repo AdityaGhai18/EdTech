@@ -1,5 +1,17 @@
 "use client";
-import { Box, Button, Center, FormControl, FormLabel, Input, Stack, Text, useToast } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Center,
+  FormControl,
+  FormLabel,
+  Input,
+  Stack,
+  Text,
+  useToast,
+  Progress,
+  Select,
+} from '@chakra-ui/react'
 import { Link } from '@saas-ui/react'
 import NextLink from 'next/link'
 import { FaGithub, FaGoogle } from 'react-icons/fa'
@@ -24,19 +36,52 @@ const providers = {
   },
 }
 
+// Simple function to gauge password strength (0-100).
+// For production, consider a more robust password validation or a dedicated library.
+const getPasswordStrength = (pwd: string): number => {
+  let strength = 0
+  // Increase strength based on length
+  if (pwd.length >= 8) strength += 30
+  if (pwd.length >= 12) strength += 20
+
+  // Increase strength for mixed-case usage
+  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength += 20
+
+  // Increase strength for numbers
+  if (/\d/.test(pwd)) strength += 15
+
+  // Increase strength for special characters
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) strength += 15
+
+  // Avoid going over 100
+  if (strength > 100) strength = 100
+  return strength
+}
+
 const Signup = () => {
   const router = useRouter()
   const toast = useToast()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+
+  // Form state
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [country, setCountry] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [referralCode, setReferralCode] = useState('') // optional
+
+  // UI/Loading state
   const [loading, setLoading] = useState(false)
+  const [passwordStrength, setPasswordStrength] = useState(0)
 
   // Check if already logged in
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       if (session) {
         toast({
           title: 'Already logged in',
@@ -45,18 +90,56 @@ const Signup = () => {
           duration: 2000,
           isClosable: true,
         })
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         router.push('/dashboard')
       }
     }
     checkSession()
   }, [router, toast])
 
+  // Update password strength whenever password changes
+  useEffect(() => {
+    setPasswordStrength(getPasswordStrength(password))
+  }, [password])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Basic client-side validation
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Passwords do not match',
+        description: 'Please ensure your passwords match.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      })
+      return
+    }
+
+    if (!country) {
+      toast({
+        title: 'Country is required',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      })
+      return
+    }
+
+    if (!phoneNumber) {
+      toast({
+        title: 'Phone number is required',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      })
+      return
+    }
+
     setLoading(true)
     try {
-      // Sign up user with auto confirm
+      // Sign up user (Supabase will send a verification email if "Enable Email Confirmations" is on)
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -64,43 +147,49 @@ const Signup = () => {
           data: {
             first_name: firstName,
             last_name: lastName,
-          }
-        }
+          },
+        },
       })
-      
-      if (signUpError) throw signUpError
-      
-      if (authData.user) {
-        // Create profile without email field
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            first_name: firstName,
-            last_name: lastName,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
 
+      if (signUpError) throw signUpError
+
+      if (authData.user) {
+        // Insert row into 'profiles'
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: authData.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          phone_number: phoneNumber,
+          country,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
         if (profileError) throw profileError
 
-        // Create wallet
-        const { error: walletError } = await supabase
-          .from('cryptowallets')
-          .insert({
-            user_id: authData.user.id,
-            all_sc: {},
-            country: 'default'
-          })
-
+        // Create a default cryptowallet
+        const { error: walletError } = await supabase.from('cryptowallets').insert({
+          user_id: authData.user.id,
+          all_sc: {}, // empty object if you plan to support multiple stablecoins
+          country,    // store same country or user's region
+        })
         if (walletError) throw walletError
+
+        // (Optional) Store referral code if it’s part of your project logic
+        if (referralCode) {
+          // Example of how you might store it somewhere:
+          // await supabase.from('referrals').insert({
+          //   user_id: authData.user.id,
+          //   code: referralCode,
+          // })
+        }
 
         toast({
           title: 'Account created successfully!',
+          description: 'Please check your email to verify your account.',
           status: 'success',
-          duration: 3000,
+          duration: 5000,
+          isClosable: true,
         })
-        
         router.push('/dashboard')
       }
     } catch (error: any) {
@@ -136,6 +225,7 @@ const Signup = () => {
           spacing="20"
           flexDirection={{ base: 'column', lg: 'row' }}
         >
+          {/* Left Column with Logo & Features */}
           <Box pe="20">
             <NextLink href="/">
               <Box
@@ -160,6 +250,7 @@ const Signup = () => {
               }))}
             />
           </Box>
+          {/* Right Column with Form */}
           <Center height="100%" flex="1">
             <Box width="container.sm" pt="8" px="8">
               <form onSubmit={handleSubmit}>
@@ -181,6 +272,29 @@ const Signup = () => {
                     />
                   </FormControl>
                   <FormControl isRequired>
+                    <FormLabel>Country</FormLabel>
+                    <Select
+                      placeholder="Select country"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                    >
+                      <option value="US">United States</option>
+                      <option value="PE">Peru</option>
+                      <option value="MX">Mexico</option>
+                      <option value="BR">Brazil</option>
+                      {/* Add more as needed */}
+                    </Select>
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>Phone Number</FormLabel>
+                    <Input
+                      type="tel"
+                      placeholder="+1 555 123 4567"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
                     <FormLabel>Email</FormLabel>
                     <Input
                       type="email"
@@ -195,7 +309,38 @@ const Signup = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
+                    {/* Password Strength Indicator */}
+                    <Progress
+                      mt="2"
+                      value={passwordStrength}
+                      size="xs"
+                      colorScheme={
+                        passwordStrength < 40
+                          ? 'red'
+                          : passwordStrength < 70
+                          ? 'yellow'
+                          : 'green'
+                      }
+                    />
                   </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </FormControl>
+                  {/* Optional Referral Code */}
+                  <FormControl>
+                    <FormLabel>Referral Code (Optional)</FormLabel>
+                    <Input
+                      type="text"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                    />
+                  </FormControl>
+
                   <Button
                     type="submit"
                     colorScheme="purple"
@@ -205,30 +350,37 @@ const Signup = () => {
                   >
                     Sign up
                   </Button>
-                  
+
                   <Stack spacing={4}>
                     <Button
                       leftIcon={<FaGoogle />}
                       width="100%"
                       variant="outline"
-                      onClick={() => {}} // Disabled for now
+                      onClick={() => {
+                        // Example Google OAuth (uncomment if set up with Supabase)
+                        // supabase.auth.signInWithOAuth({ provider: 'google' });
+                      }}
                     >
                       Continue with Google
                     </Button>
-                    {/* <Button
-                      leftIcon={<FaGithub />}
-                      width="100%"
-                      variant="outline"
-                      onClick={() => {}} // Disabled for now
-                    >
-                      Continue with Github
-                    </Button> */}
+                    {/* 
+                      <Button
+                        leftIcon={<FaGithub />}
+                        width="100%"
+                        variant="outline"
+                        onClick={() => {
+                          // supabase.auth.signInWithOAuth({ provider: 'github' });
+                        }}
+                      >
+                        Continue with Github
+                      </Button> 
+                    */}
                   </Stack>
-                  
+
                   <Center>
                     <Link href="/login">Already have an account? Log in</Link>
                   </Center>
-                  
+
                   <Text color="muted" fontSize="sm" textAlign="center">
                     By signing up you agree to our{' '}
                     <Link href={siteConfig.termsUrl} color="primary.500">
@@ -238,6 +390,10 @@ const Signup = () => {
                     <Link href={siteConfig.privacyUrl} color="primary.500">
                       Privacy Policy
                     </Link>
+                  </Text>
+
+                  <Text fontSize="sm" color="gray.500" mt="2" textAlign="center">
+                    You may be required to complete further KYC steps for higher transaction limits.
                   </Text>
                 </Stack>
               </form>

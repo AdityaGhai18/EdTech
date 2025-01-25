@@ -1,37 +1,51 @@
 "use client";
-import { Suspense, useEffect } from 'react'
-import { Box, Button, Center, FormControl, FormLabel, Heading, Input, Stack, Text, useToast } from '@chakra-ui/react'
-import { Link } from '@saas-ui/react'
-import { FaGithub, FaGoogle } from 'react-icons/fa'
-import { BackgroundGradient } from '#components/gradients/background-gradient'
-import { PageTransition } from '#components/motion/page-transition'
-import { Section } from '#components/section'
-import { Footer } from '#components/layout/footer'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { supabase } from 'utils/supabase'
-import { Header } from '#components/layout/header'
+import { Suspense, useEffect, useState } from 'react';
+import {
+  Box,
+  Button,
+  Center,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Link as ChakraLink,
+  Stack,
+  Text,
+  useToast,
+} from '@chakra-ui/react';
+import { Link } from '@saas-ui/react';
+import { FaGithub, FaGoogle } from 'react-icons/fa';
+import { BackgroundGradient } from '#components/gradients/background-gradient';
+import { PageTransition } from '#components/motion/page-transition';
+import { Section } from '#components/section';
+import { Footer } from '#components/layout/footer';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from 'utils/supabase';
+import { Header } from '#components/layout/header';
 
 const Login = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <LoginContent />
     </Suspense>
-  )
-}
+  );
+};
 
 const LoginContent = () => {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const toast = useToast()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const toast = useToast();
 
-  // Check for active session and redirect
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Check for active session and redirect if already logged in
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         toast({
           title: 'Already logged in',
@@ -39,32 +53,47 @@ const LoginContent = () => {
           status: 'info',
           duration: 2000,
           isClosable: true,
-        })
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         // Get return_to from URL or default to dashboard
-        const returnTo = searchParams.get('return_to') || '/dashboard'
-        router.push(returnTo)
+        const returnTo = searchParams.get('return_to') || '/dashboard';
+        router.push(returnTo);
       }
-    }
-    checkSession()
-  }, [router, toast, searchParams])
+    };
+    checkSession();
+  }, [router, toast, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+
+    // Basic client-side validation
+    if (!email || !password) {
+      toast({
+        title: 'Missing Credentials',
+        description: 'Please enter both email and password.',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      })
-      
-      if (error) throw error
+      });
 
-      // Wait for session to be stored
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (error) throw error;
 
-      const { data: { session } } = await supabase.auth.getSession()
+      // Give Supabase a moment to store the session
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         toast({
           title: 'Success',
@@ -72,28 +101,27 @@ const LoginContent = () => {
           status: 'success',
           duration: 2000,
           isClosable: true,
-        })
+        });
 
         // Get return_to from URL or default to dashboard
-        const returnTo = searchParams.get('return_to') || '/dashboard'
-        router.push(returnTo)
+        const returnTo = searchParams.get('return_to') || '/dashboard';
+        router.push(returnTo);
       } else {
-        throw new Error('Failed to establish session')
+        throw new Error('Failed to establish session');
       }
-
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('Login error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to log in',
         status: 'error',
         duration: 5000,
         isClosable: true,
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Box minH="100vh" display="flex" flexDirection="column">
@@ -103,8 +131,11 @@ const LoginContent = () => {
         <PageTransition>
           <Box width="100%" maxW="480px" mx="auto" px={4} pt={10}>
             <Stack spacing={8}>
-              <Heading size="lg" textAlign="center">Log in</Heading>
-              
+              <Heading size="lg" textAlign="center">
+                Log in
+              </Heading>
+
+              {/* Optional Social Login buttons */}
               <Stack spacing={4}>
                 <Button
                   leftIcon={<FaGoogle />}
@@ -112,33 +143,43 @@ const LoginContent = () => {
                   height="50px"
                   fontSize="md"
                   variant="outline"
-                  onClick={() => {}}
+                  onClick={() => {
+                    // For Google OAuth (uncomment if configured in Supabase)
+                    // supabase.auth.signInWithOAuth({ provider: 'google' });
+                  }}
                   _hover={{
-                    bg: 'whiteAlpha.100'
+                    bg: 'whiteAlpha.100',
                   }}
                 >
                   Continue with Google
                 </Button>
-                {/* <Button
+                {/*
+                <Button
                   leftIcon={<FaGithub />}
                   width="100%"
                   height="50px"
                   fontSize="md"
                   variant="outline"
-                  onClick={() => {}}
+                  onClick={() => {
+                    // supabase.auth.signInWithOAuth({ provider: 'github' });
+                  }}
                   _hover={{
-                    bg: 'whiteAlpha.100'
+                    bg: 'whiteAlpha.100',
                   }}
                 >
                   Continue with Github
-                </Button> */}
+                </Button>
+                */}
               </Stack>
 
               <Stack spacing={1} align="center">
-                <Text color="gray.500" fontSize="sm">or continue with</Text>
+                <Text color="gray.500" fontSize="sm">
+                  or continue with
+                </Text>
                 <Box h={2} />
               </Stack>
 
+              {/* Email/Password Login */}
               <form onSubmit={handleSubmit}>
                 <Stack spacing={4}>
                   <FormControl isRequired>
@@ -153,11 +194,11 @@ const LoginContent = () => {
                       border="1px solid"
                       borderColor="whiteAlpha.100"
                       _hover={{
-                        borderColor: "whiteAlpha.200"
+                        borderColor: 'whiteAlpha.200',
                       }}
                       _focus={{
-                        borderColor: "primary.500",
-                        boxShadow: "none"
+                        borderColor: 'primary.500',
+                        boxShadow: 'none',
                       }}
                     />
                   </FormControl>
@@ -173,14 +214,27 @@ const LoginContent = () => {
                       border="1px solid"
                       borderColor="whiteAlpha.100"
                       _hover={{
-                        borderColor: "whiteAlpha.200"
+                        borderColor: 'whiteAlpha.200',
                       }}
                       _focus={{
-                        borderColor: "primary.500",
-                        boxShadow: "none"
+                        borderColor: 'primary.500',
+                        boxShadow: 'none',
                       }}
                     />
                   </FormControl>
+                      // TODO: Implement forgot password page
+                  {/* Forgot Password Link */}
+                  <Box textAlign="right">
+                    <ChakraLink
+                      href="/forgot-password"
+                      color="primary.500"
+                      fontSize="sm"
+                      _hover={{ textDecoration: 'underline' }}
+                    >
+                      Forgot Password?
+                    </ChakraLink>
+                  </Box>
+
                   <Button
                     type="submit"
                     colorScheme="primary"
@@ -209,7 +263,7 @@ const LoginContent = () => {
       </Section>
       <Footer />
     </Box>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

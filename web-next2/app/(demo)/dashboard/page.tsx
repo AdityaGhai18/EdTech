@@ -7,10 +7,27 @@ import {
   Center,
   Spinner,
   Flex,
+  Alert,
+  AlertIcon,
+  Button,
+  IconButton,
+  VStack,
+  Text,
+  HStack,
 } from "@chakra-ui/react";
-import { FiDollarSign, FiUsers, FiActivity, FiGlobe } from "react-icons/fi";
+import {
+  FiDollarSign,
+  FiUsers,
+  FiActivity,
+  FiGlobe,
+  FiArrowDownCircle,
+  FiArrowUpCircle,
+  FiRefreshCw,
+  FiFileText,
+  FiUser,
+} from "react-icons/fi";
 import { supabase } from "utils/supabase";
-import ProtectedRoute from "#components/auth/protected-route";
+import ProtectedRoute from "#components/auth/protected-route"; // If desired, wrap the entire export
 import { StatCard } from "#components/dashboard/StatCard";
 import { TransactionList } from "#components/dashboard/TransactionList";
 import { Section } from "#components/section";
@@ -19,29 +36,25 @@ import { BackgroundGradient } from "#components/gradients/background-gradient";
 import { Sidebar } from "#components/dashboard/Sidebar";
 import { useRouter } from "next/navigation";
 
-// Define interfaces for our data types
 interface Transaction {
   id: string;
   user_id: string;
   amount: number;
-  transaction_type: string;
+  transaction_type: string; // deposit, withdraw, transfer_match, etc.
   country_from: string;
   country_to: string;
-  status: "pending" | "completed" | "failed";
+  status: "pending" | "completed" | "failed" | "canceled";
   stablecoin_curr: string;
   created_at: string;
   updated_at: string;
 }
 
-interface StablecoinBalance {
-  [key: string]: number; // e.g. { "USDU": 100, "EURC": 50 }
-}
-
 interface CryptoWallet {
   id: string;
   user_id: string;
-  all_sc: { [key: string]: number };
   country: string;
+  stablecoin_balance?: number; // optional if you only store in `all_sc`
+  all_sc?: { [key: string]: number };
 }
 
 interface DashboardStats {
@@ -49,7 +62,6 @@ interface DashboardStats {
   activeCorridors: number;
   totalVolume: number;
   userCount: number;
-  wallet?: CryptoWallet;
 }
 
 const Dashboard = () => {
@@ -65,6 +77,7 @@ const Dashboard = () => {
     userCount: 0,
   });
 
+  // Fetch data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -72,14 +85,14 @@ const Dashboard = () => {
           data: { session },
         } = await supabase.auth.getSession();
 
-        if (!session) return;
+        if (!session) {
+          // If no session, redirect to login (or handle however you'd like)
+          router.push("/login");
+          return;
+        }
 
-        const [
-          profileResponse,
-          walletResponse,
-          transactionsResponse,
-          statsResponse,
-        ] = await Promise.all([
+        // Fetch profile, wallet, last 5 transactions, and platform stats in parallel
+        const [profileRes, walletRes, txRes, statsRes] = await Promise.all([
           supabase
             .from("profiles")
             .select("*")
@@ -96,50 +109,31 @@ const Dashboard = () => {
             .eq("user_id", session.user.id)
             .order("created_at", { ascending: false })
             .limit(5),
+          // This RPC must be defined in your DB (function get_dashboard_stats())
           supabase.rpc("get_dashboard_stats"),
         ]);
 
-        if (profileResponse.error) throw profileResponse.error;
+        if (profileRes.error) throw profileRes.error;
+        setProfile(profileRes.data);
 
-        setProfile(profileResponse.data);
-        setWallet(walletResponse.data);
-        setTransactions(transactionsResponse.data || []);
-        setStats(
-          statsResponse.data || {
-            totalTransfers: 0,
-            activeCorridors: 0,
-            totalVolume: 0,
-            userCount: 0,
-          }
-        );
+        if (!walletRes.error) setWallet(walletRes.data);
+        if (!txRes.error && txRes.data) setTransactions(txRes.data);
+
+        // If your function returns null or an error, fallback
+        if (!statsRes.error && statsRes.data) {
+          setStats(statsRes.data);
+        }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching dashboard data:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
- 
-  if (!profile) {
-    return (
-      <Box minH="100vh" bg="gray.900">
-        <Flex h="100vh">
-          <Sidebar />
-          <Center ml="240px" w="calc(100% - 240px)" bg="gray.900">
-            <Spinner
-              size="xl"
-              thickness="4px"
-              speed="0.65s"
-              color="purple.500"
-            />
-          </Center>
-        </Flex>
-      </Box>
-    );
-  }
+  }, [router]);
 
+  // Renders the stablecoin balances for each coin in `all_sc`
   const renderStablecoinCards = () => {
     if (!wallet?.all_sc || Object.keys(wallet.all_sc).length === 0) {
       return (
@@ -149,33 +143,45 @@ const Dashboard = () => {
           icon={FiDollarSign}
           iconColor="gray.400"
           isEmptyState
-          onClick={() => router.push("/dashboard/deposit")}
+          onClick={() => router.push("/deposit")} // Link to your Deposit page
         />
       );
     }
 
-    return (
-      <>
-        {Object.entries(wallet.all_sc).map(([coin, balance]) => (
-          <StatCard
-            key={coin}
-            title={`${coin} Balance`}
-            value={`$${balance.toLocaleString()}`}
-            icon={FiDollarSign}
-            iconColor="green.500"
-          />
-        ))}
-        <StatCard
-          title="Buy More"
-          value="Different Regions"
-          icon={FiDollarSign}
-          iconColor="purple.500"
-          isEmptyState
-          onClick={() => router.push("/dashboard/deposit")}
-        />
-      </>
-    );
+    return Object.entries(wallet.all_sc).map(([coin, balance]) => (
+      <StatCard
+        key={coin}
+        title={`${coin} Balance`}
+        value={`$${balance.toLocaleString()}`}
+        icon={FiDollarSign}
+        iconColor="green.500"
+      />
+    ));
   };
+
+  if (loading) {
+    return (
+      <Box minH="100vh" bg="gray.900">
+        <Flex h="100vh">
+          <Sidebar />
+          <Center ml={{ base: 0, md: "240px" }} flex="1">
+            <Spinner size="xl" thickness="4px" speed="0.65s" color="purple.500" />
+          </Center>
+        </Flex>
+      </Box>
+    );
+  }
+
+  if (!profile) {
+    // If profile failed to load or user is not logged in
+    return (
+      <Box minH="100vh" bg="gray.900">
+        <Flex h="100vh" alignItems="center" justifyContent="center">
+          <Text color="whiteAlpha.900">Unable to load profile data.</Text>
+        </Flex>
+      </Box>
+    );
+  }
 
   return (
     <Box minH="100vh" bg="gray.900">
@@ -183,8 +189,8 @@ const Dashboard = () => {
         <Sidebar />
         <Box
           as="main"
-          ml="240px"
-          w="calc(100% - 240px)"
+          ml={{ base: 0, md: "240px" }}
+          w={{ base: "100%", md: "calc(100% - 240px)" }}
           minH="100vh"
           bg="gray.900"
           position="relative"
@@ -198,20 +204,117 @@ const Dashboard = () => {
             right="0"
             bottom="0"
           />
+
           <PageTransition>
             <Box maxW="container.xl" mx="auto" px={8} py={8}>
-              <Heading size="lg" mb={8} color="white">
+              <Heading size="lg" mb={4} color="white">
                 Welcome, {profile.first_name} {profile.last_name}!
               </Heading>
 
+              {/* Show alert if KYC is incomplete */}
+              {profile.kyc_level !== "verified" && (
+                <Alert status="info" mb={6} borderRadius="md">
+                  <AlertIcon />
+                  Your account is not fully verified. Please complete KYC for higher limits.
+                </Alert>
+              )}
+
+              {/* Quick Platform Stats (optional) */}
+              <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4} mb={8}>
+                <StatCard
+                  title="Total Transfers"
+                  value={stats.totalTransfers.toLocaleString()}
+                  icon={FiActivity}
+                  iconColor="blue.400"
+                />
+                <StatCard
+                  title="Active Corridors"
+                  value={stats.activeCorridors.toLocaleString()}
+                  icon={FiGlobe}
+                  iconColor="purple.400"
+                />
+                <StatCard
+                  title="Total Volume"
+                  value={`$${stats.totalVolume.toLocaleString()}`}
+                  icon={FiDollarSign}
+                  iconColor="green.400"
+                />
+                <StatCard
+                  title="User Count"
+                  value={stats.userCount.toLocaleString()}
+                  icon={FiUsers}
+                  iconColor="orange.400"
+                />
+              </SimpleGrid>
+
+              {/* Quick Actions row */}
+              <HStack spacing={4} mb={8} wrap="wrap">
+                <Button
+                  leftIcon={<FiArrowDownCircle />}
+                  colorScheme="purple"
+                  variant="solid"
+                  onClick={() => router.push("/dashboard/deposit")}
+                >
+                  Deposit
+                </Button>
+                <Button
+                  leftIcon={<FiArrowUpCircle />}
+                  colorScheme="purple"
+                  variant="solid"
+                  onClick={() => router.push("/dashboard/transfer")}
+                >
+                  Transfer
+                </Button>
+                <Button
+                  leftIcon={<FiRefreshCw />}
+                  colorScheme="purple"
+                  variant="solid"
+                  onClick={() => router.push("/dashboard/transfer-match")}
+                >
+                  Match Center
+                </Button>
+                <Button
+                  leftIcon={<FiArrowDownCircle />}
+                  colorScheme="purple"
+                  variant="solid"
+                  onClick={() => router.push("/dashboard/withdraw")}
+                >
+                  Withdraw
+                </Button>
+                <Button
+                  leftIcon={<FiFileText />}
+                  colorScheme="purple"
+                  variant="solid"
+                  onClick={() => router.push("/dashboard/history")}
+                >
+                  History
+                </Button>
+                <IconButton
+                  aria-label="Profile"
+                  icon={<FiUser />}
+                  colorScheme="purple"
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/profile")}
+                  title="Profile Settings"
+                />
+              </HStack>
+
+              {/* Stablecoin Balances */}
+              <Heading size="md" color="white" mb={4}>
+                Your Balances
+              </Heading>
               <SimpleGrid
-                columns={{ base: 1, md: 2, lg: 4 }}
+                columns={{ base: 1, md: 2, lg: 3 }}
                 spacing={6}
                 mb={8}
               >
                 {renderStablecoinCards()}
               </SimpleGrid>
 
+              {/* Recent Transactions */}
+              <Heading size="md" color="white" mb={4}>
+                Recent Transactions
+              </Heading>
               <TransactionList transactions={transactions} />
             </Box>
           </PageTransition>

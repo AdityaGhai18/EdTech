@@ -1,332 +1,311 @@
 "use client";
-import { useState, useEffect } from 'react'
-import { Box, Flex, Heading, Input, Button, VStack, FormControl, FormLabel, useToast, Select, Text } from '@chakra-ui/react'
-import { Sidebar } from '#components/dashboard/Sidebar'
-import { PageTransition } from '#components/motion/page-transition'
-import { BackgroundGradient } from '#components/gradients/background-gradient'
-import { updateWalletBalance } from 'utils/wallet'
-import { supabase } from 'utils/supabase'
-import { useRouter } from 'next/navigation'
-import { TransferTabs } from '#components/dashboard/TransferTabs'
-import { MatchingTransactionList } from '#components/dashboard/MatchingTransactionList'
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Input,
+  Button,
+  VStack,
+  FormControl,
+  FormLabel,
+  useToast,
+  Select,
+  Spinner,
+  Alert,
+  AlertIcon,
+} from "@chakra-ui/react";
+import { Sidebar } from "#components/dashboard/Sidebar";
+import { PageTransition } from "#components/motion/page-transition";
+import { BackgroundGradient } from "#components/gradients/background-gradient";
+import { supabase } from "utils/supabase";
+import { useRouter } from "next/navigation";
 
+// Minimal shape for cryptowallet
 interface CryptoWallet {
   id: string;
   user_id: string;
-  all_sc: { [key: string]: number };
   country: string;
-}
-
-interface MatchingTransaction {
-  id: string
-  user_id: string
-  amount: number
-  country_from: string
-  country_to: string
-  status: string
-  stablecoin_curr: string
-  profiles: {
-    first_name: string
-    last_name: string
-  }
+  all_sc?: { [key: string]: number }; // e.g. { USDU: 100, EURC: 50 }
 }
 
 const TransferPage = () => {
-  const router = useRouter()
-  const [stablecoin, setStablecoin] = useState('');
-  const [amount, setAmount] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [wallet, setWallet] = useState<CryptoWallet | null>(null);
+  const router = useRouter();
+  const toast = useToast();
+
   const [loading, setLoading] = useState(true);
-  const toast = useToast()
-  const [countryFrom, setCountryFrom] = useState('')
-  const [countryTo, setCountryTo] = useState('')
-  const [currentStep, setCurrentStep] = useState(1)
-  const [matchingTransactions, setMatchingTransactions] = useState<MatchingTransaction[]>([])
+  const [wallet, setWallet] = useState<CryptoWallet | null>(null);
 
-    useEffect(() => {
-    const fetchWallet = async () => {
+  // Form fields
+  const [stablecoin, setStablecoin] = useState("USDU");
+  const [countryFrom, setCountryFrom] = useState("");
+  const [countryTo, setCountryTo] = useState("");
+  const [amount, setAmount] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (!session) return
+        // Check session
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        const walletResponse = await supabase
-            .from('cryptowallets')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single()
-
-        if (walletResponse.error) throw walletResponse.error
-        
-        setWallet(walletResponse.data)
-      } catch (error) {
-        console.error('Error fetching wallet:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchWallet()
-  }, [])
-
-  const handleTransfer = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session) {
-        toast({
-          title: 'Not authenticated',
-          description: 'Please login first',
-          status: 'error',
-          duration: 3000,
-        })
-        return
-      }
-
-      // Validate inputs
-      if (!stablecoin || !amount || !recipient || !countryFrom || !countryTo) {
-        toast({
-          title: 'Missing fields',
-          description: 'Please fill in all fields',
-          status: 'error',
-          duration: 3000,
-        })
-        return
-      }
-
-      const numAmount = parseFloat(amount)
-      
-      if (isNaN(numAmount) || numAmount <= 0) {
-        toast({
-          title: 'Invalid amount',
-          description: 'Please enter a valid positive number',
-          status: 'error',
-          duration: 3000,
-        })
-        return
-      }
-
-      if (!wallet?.all_sc || !wallet.all_sc[stablecoin.toUpperCase()] || wallet.all_sc[stablecoin.toUpperCase()] < numAmount) {
+        if (!session) {
           toast({
-            title: 'Insufficient funds',
-            description: `You do not have enough ${stablecoin} to transfer`,
-            status: 'error',
+            title: "Not authenticated",
+            description: "Please login first",
+            status: "error",
             duration: 3000,
           });
+          router.push("/login");
           return;
+        }
+
+        // Fetch user’s wallet
+        const { data: walletData, error: walletError } = await supabase
+          .from("cryptowallets")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (walletError) throw walletError;
+        setWallet(walletData);
+      } catch (error: any) {
+        console.error("Error loading wallet data:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Could not load wallet data",
+          status: "error",
+          duration: 4000,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [router, toast]);
+
+  const handleCreateTransferRequest = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast({
+          title: "Not authenticated",
+          description: "Please login first",
+          status: "error",
+          duration: 3000,
+        });
+        return;
       }
 
-      // Log the user's input
-      console.log('User request:', {
-        countryFrom,
-        countryTo,
-        amount,
-        stablecoin
-      });
+      // 1) Validation
+      if (!stablecoin || !countryFrom || !countryTo || !amount) {
+        toast({
+          title: "Missing fields",
+          description: "Please fill in all fields",
+          status: "error",
+          duration: 3000,
+        });
+        return;
+      }
 
-      setCurrentStep(2)
-      
-      // Debug: First get ALL pending transactions
-      const { data: allPending } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('status', 'pending');
-      console.log('All pending transactions:', allPending);
+      const numericAmount = parseFloat(amount);
+      if (isNaN(numericAmount) || numericAmount <= 0) {
+        toast({
+          title: "Invalid amount",
+          description: "Please enter a valid positive number",
+          status: "error",
+          duration: 3000,
+        });
+        return;
+      }
 
-      // Then try just the country match
-      const { data: countryMatch } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('country_from', 'USA')
-        .eq('country_to', 'MEX');
-      console.log('Country matching transactions:', countryMatch);
+      if (!wallet?.all_sc) {
+        toast({
+          title: "No stablecoin wallet",
+          description: "Your cryptowallet has no balances. Please deposit first.",
+          status: "error",
+          duration: 3000,
+        });
+        return;
+      }
 
-      // Then our actual query
-      const { data: matches, error: matchError } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          profiles:user_id (
-            first_name,
-            last_name
-          )
-        `)
-        .eq('country_from', countryTo)
-        .eq('country_to', countryFrom)
-        .eq('status', 'pending')
-        .neq('user_id', session.user.id)
+      // 2) Check user’s stablecoin balance
+      const coin = stablecoin.toUpperCase();
+      const currentBalance = wallet.all_sc[coin] || 0;
+      if (currentBalance < numericAmount) {
+        toast({
+          title: "Insufficient Balance",
+          description: `Your ${coin} balance is only ${currentBalance}. Please deposit or reduce the transfer amount.`,
+          status: "error",
+          duration: 4000,
+        });
+        return;
+      }
 
-      // Log raw response
-      console.log('Raw Supabase response:', matches);
-
-      if (matchError) throw matchError
-      setMatchingTransactions(matches)
-
-    } catch (error: any) {
-      console.error('Error in handleTransfer:', error)
-      toast({
-        title: 'Error making transfer',
-        description: error.message || 'Something went wrong',
-        status: 'error',
-        duration: 3000,
-      })
-    }
-  }
-
-  const handleMatch = async (matchId: string) => {
-    // Handle matching logic here
-  }
-
-  const handleCreateTransaction = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session) return
-
-      const { error: transactionError } = await supabase
-        .from('transactions')
+      // 3) Insert new request in `transfer_requests`
+      const { data, error } = await supabase
+        .from("transfer_requests")
         .insert({
           user_id: session.user.id,
-          amount: parseFloat(amount),
-          transaction_type: 'transfer',
+          amount: numericAmount,
+          stablecoin_curr: coin,
           country_from: countryFrom,
           country_to: countryTo,
-          status: 'pending',
-          stablecoin_curr: stablecoin.toUpperCase(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          status: "open",
         })
+        .select("id") // Return the ID of the newly inserted request
+        .single();
 
-      if (transactionError) throw transactionError
+      if (error) throw error;
+
+      // 4) [Optional] Lock funds (subtract from user’s wallet).
+      // For the MVP, we skip immediate deduction. If you want to do so:
+      // wallet.all_sc[coin] = currentBalance - numericAmount;
+      // await supabase
+      //   .from("cryptowallets")
+      //   .update({ all_sc: wallet.all_sc })
+      //   .eq("id", wallet.id);
 
       toast({
-        title: 'Transfer request created',
-        description: 'Your transfer request is now pending for matching',
-        status: 'success',
-        duration: 3000,
-      })
-      
-      router.push('/dashboard')
+        title: "Transfer request created",
+        description: "Searching for matches now...",
+        status: "success",
+        duration: 2500,
+      });
+
+      // 5) Redirect user to the transfer-match page, passing the new request ID
+      router.push(`/dashboard/transfer-match?requestId=${data.id}`);
     } catch (error: any) {
-      // ... error handling ...
+      console.error("Error creating transfer request:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        status: "error",
+        duration: 4000,
+      });
     }
+  };
+
+  if (loading) {
+    return (
+      <Box minH="100vh" bg="gray.900">
+        <Flex h="100vh">
+          <Sidebar />
+          <Flex ml={{ base: 0, md: "240px" }} flex="1" align="center" justify="center">
+            <Spinner size="xl" thickness="4px" speed="0.65s" color="purple.500" />
+          </Flex>
+        </Flex>
+      </Box>
+    );
   }
 
   return (
     <Box minH="100vh" bg="gray.900">
       <Flex h="full">
         <Sidebar />
-        <Box as="main" ml="240px" w="calc(100% - 240px)" minH="100vh" bg="gray.900" position="relative">
-          <BackgroundGradient zIndex="0" width="full" position="absolute" top="0" left="0" right="0" bottom="0" />
+        <Box
+          as="main"
+          ml={{ base: 0, md: "240px" }}
+          w={{ base: "100%", md: "calc(100% - 240px)" }}
+          minH="100vh"
+          bg="gray.900"
+          position="relative"
+        >
+          <BackgroundGradient
+            zIndex="0"
+            width="full"
+            position="absolute"
+            top="0"
+            left="0"
+            right="0"
+            bottom="0"
+          />
           <PageTransition>
-            <Box maxW="container.xl" mx="auto" px={8} py={8}>
-              <TransferTabs 
-                currentStep={currentStep} 
-                onStepChange={setCurrentStep} 
-              />
+            <Box maxW="container.md" mx="auto" px={8} py={8}>
+              <Heading size="lg" mb={6} color="white">
+                Initiate a New Transfer
+              </Heading>
 
-              {currentStep === 1 ? (
-                <>
-                  <Heading size="lg" mb={8} color="white">
-                    Transfer Request
-                  </Heading>
-                  <VStack spacing={6} maxW="md" align="stretch">
-                    <FormControl>
-                      <FormLabel color="white">Stablecoin</FormLabel>
-                      <Select
-                        placeholder="Select stablecoin"
-                        value={stablecoin}
-                        onChange={(e) => setStablecoin(e.target.value)}
-                        bg="whiteAlpha.100"
-                        color="white"
-                      >
-                        <option value="USDU">USDU</option>
-                        <option value="EURC">EURC</option>
-                        {/* Add more stablecoin options here */}
-                      </Select>
-                    </FormControl>
+              <VStack spacing={6} align="stretch">
+                {/* Stablecoin */}
+                <FormControl isRequired>
+                  <FormLabel color="white">Stablecoin</FormLabel>
+                  <Select
+                    value={stablecoin}
+                    onChange={(e) => setStablecoin(e.target.value)}
+                    bg="whiteAlpha.100"
+                    color="white"
+                  >
+                    <option value="USDU">USDU</option>
+                    <option value="EURC">EURC</option>
+                    {/* Add more stablecoin options here */}
+                  </Select>
+                </FormControl>
 
-                     <FormControl>
-                      <FormLabel color="white">Sending Country</FormLabel>
-                      <Select
-                        placeholder="Select sending country"
-                        value={countryFrom}
-                        onChange={(e) => setCountryFrom(e.target.value)}
-                        bg="whiteAlpha.100"
-                        color="white"
-                      >
-                        <option value="USA">United States</option>
-                        <option value="MEX">Mexico</option>
-                        <option value="CAN">Canada</option>
-                      </Select>
-                    </FormControl>
+                {/* Country From */}
+                <FormControl isRequired>
+                  <FormLabel color="white">From Country</FormLabel>
+                  <Select
+                    placeholder="Select origin country"
+                    value={countryFrom}
+                    onChange={(e) => setCountryFrom(e.target.value)}
+                    bg="whiteAlpha.100"
+                    color="white"
+                  >
+                    <option value="US">United States</option>
+                    <option value="PE">Peru</option>
+                    <option value="MX">Mexico</option>
+                    <option value="BR">Brazil</option>
+                    {/* add more as needed */}
+                  </Select>
+                </FormControl>
 
-                    <FormControl>
-                      <FormLabel color="white">Recipient Country</FormLabel>
-                      <Select
-                        placeholder="Select recipient country"
-                        value={countryTo}
-                        onChange={(e) => setCountryTo(e.target.value)}
-                        bg="whiteAlpha.100"
-                        color="white"
-                      >
-                        <option value="USA">United States</option>
-                        <option value="MEX">Mexico</option>
-                        <option value="CAN">Canada</option>
-                      </Select>
-                    </FormControl>
+                {/* Country To */}
+                <FormControl isRequired>
+                  <FormLabel color="white">Destination Country</FormLabel>
+                  <Select
+                    placeholder="Select destination country"
+                    value={countryTo}
+                    onChange={(e) => setCountryTo(e.target.value)}
+                    bg="whiteAlpha.100"
+                    color="white"
+                  >
+                    <option value="US">United States</option>
+                    <option value="PE">Peru</option>
+                    <option value="MX">Mexico</option>
+                    <option value="BR">Brazil</option>
+                    {/* add more as needed */}
+                  </Select>
+                </FormControl>
 
-                    <FormControl>
-                      <FormLabel color="white">Recipient</FormLabel>
-                      <Input
-                        placeholder="Enter recipient's email or ID"
-                        value={recipient}
-                        onChange={(e) => setRecipient(e.target.value)}
-                        bg="whiteAlpha.100"
-                        color="white"
-                      />
-                    </FormControl>
-
-                    <FormControl>
-                      <FormLabel color="white">Amount</FormLabel>
-                      <Input
-                        placeholder="Enter amount"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        type="number"
-                        bg="whiteAlpha.100"
-                        color="white"
-                      />
-                    </FormControl>
-
-                    <Button 
-                      colorScheme="purple" 
-                      size="lg"
-                      onClick={handleTransfer}
-                    >
-                      Transfer Stablecoin
-                    </Button>
-                  </VStack>
-                </>
-              ) : (
-                <>
-                  <Heading size="lg" mb={8} color="white">
-                    Transfer Match
-                  </Heading>
-                  <MatchingTransactionList 
-                    transactions={matchingTransactions}
-                    onMatch={handleMatch}
-                    onCreateRequest={handleCreateTransaction}
+                {/* Amount */}
+                <FormControl isRequired>
+                  <FormLabel color="white">Amount</FormLabel>
+                  <Input
+                    placeholder="Enter stablecoin amount to send"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    type="number"
+                    bg="whiteAlpha.100"
+                    color="white"
                   />
-                </>
-              )}
+                </FormControl>
+
+                <Button colorScheme="purple" size="lg" onClick={handleCreateTransferRequest}>
+                  Create Transfer Request
+                </Button>
+              </VStack>
             </Box>
           </PageTransition>
         </Box>
       </Flex>
     </Box>
-  )
-}
+  );
+};
 
-export default TransferPage
+export default TransferPage;
