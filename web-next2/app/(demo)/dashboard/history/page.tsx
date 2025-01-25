@@ -277,7 +277,7 @@ export default function HistoryPage() {
                         Apply Filters
                       </Button>
                       <Button
-                        variant="outline"
+                        // variant="outline"
                         colorScheme="purple"
                         onClick={() => {
                           // Reset all filters
@@ -292,7 +292,7 @@ export default function HistoryPage() {
                       >
                         Clear Filters
                       </Button>
-                      <Button variant="outline" colorScheme="purple" onClick={handleExportCSV}>
+                      <Button /* variant="outline" */ colorScheme="purple" onClick={handleExportCSV}>
                         Export CSV
                       </Button>
                     </HStack>

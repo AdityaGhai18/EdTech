@@ -409,8 +409,10 @@ const DepositPage = () => {
                     color="white"
                   >
                     <option value="USD">USD</option>
-                    <option value="PEN">PEN</option>
-                    <option value="EUR">EUR</option>
+                    {
+                    // TODO: Look if adding more currencies are needed
+                    /* <option value="PEN">PEN</option>
+                    <option value="EUR">EUR</option> */}
                     {/* Add more local currencies as needed */}
                   </Select>
                 </FormControl>

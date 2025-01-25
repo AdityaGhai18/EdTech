@@ -192,19 +192,19 @@ const TransferMatchPage = () => {
       });
 
       // If you don't have a custom RPC, you can do something like:
-      // const { error: updateErr1 } = await supabase
-      //   .from("transfer_requests")
-      //   .update({ status: "matched", matched_request_id: matchId })
-      //   .eq("id", myRequest.id)
-      //   .eq("status", "open");
-      // if (updateErr1) throw updateErr1;
-      //
-      // const { error: updateErr2 } = await supabase
-      //   .from("transfer_requests")
-      //   .update({ status: "matched", matched_request_id: myRequest.id })
-      //   .eq("id", matchId)
-      //   .eq("status", "open");
-      // if (updateErr2) throw updateErr2;
+    //   const { error: updateErr1 } = await supabase
+    //     .from("transfer_requests")
+    //     .update({ status: "matched", matched_request_id: matchId })
+    //     .eq("id", myRequest.id)
+    //     .eq("status", "open");
+    //   if (updateErr1) throw updateErr1;
+      
+    //   const { error: updateErr2 } = await supabase
+    //     .from("transfer_requests")
+    //     .update({ status: "matched", matched_request_id: myRequest.id })
+    //     .eq("id", matchId)
+    //     .eq("status", "open");
+    //   if (updateErr2) throw updateErr2;
 
       if (matchErr) throw matchErr;
 

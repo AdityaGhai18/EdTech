@@ -242,7 +242,7 @@ const TransferPage = () => {
                     color="white"
                   >
                     <option value="USDU">USDU</option>
-                    <option value="EURC">EURC</option>
+                    {/* <option value="EURC">EURC</option> */}
                     {/* Add more stablecoin options here */}
                   </Select>
                 </FormControl>

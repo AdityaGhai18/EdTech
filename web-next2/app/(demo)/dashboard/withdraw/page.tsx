@@ -303,7 +303,7 @@ export default function WithdrawPage() {
                     color="white"
                   >
                     <option value="USDU">USDU</option>
-                    <option value="EURC">EURC</option>
+                    {/* <option value="EURC">EURC</option> */}
                     {/* add more stablecoin options here */}
                   </Select>
                 </FormControl>

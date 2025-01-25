@@ -120,8 +120,8 @@ const Dashboard = () => {
         if (!txRes.error && txRes.data) setTransactions(txRes.data);
 
         // If your function returns null or an error, fallback
-        if (!statsRes.error && statsRes.data) {
-          setStats(statsRes.data);
+        if (!statsRes.error && statsRes.data && statsRes.data.length > 0) {
+          setStats(statsRes.data[0]); 
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -223,25 +223,25 @@ const Dashboard = () => {
               <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4} mb={8}>
                 <StatCard
                   title="Total Transfers"
-                  value={stats.totalTransfers.toLocaleString()}
+                  value={(stats.totalTransfers ?? 0).toLocaleString()}
                   icon={FiActivity}
                   iconColor="blue.400"
                 />
                 <StatCard
                   title="Active Corridors"
-                  value={stats.activeCorridors.toLocaleString()}
+                  value={(stats.activeCorridors ?? 0).toLocaleString()}
                   icon={FiGlobe}
                   iconColor="purple.400"
                 />
                 <StatCard
                   title="Total Volume"
-                  value={`$${stats.totalVolume.toLocaleString()}`}
+                  value={`$${(stats.totalVolume ?? 0).toLocaleString()}`}
                   icon={FiDollarSign}
                   iconColor="green.400"
                 />
                 <StatCard
                   title="User Count"
-                  value={stats.userCount.toLocaleString()}
+                  value={(stats.userCount ?? 0).toLocaleString()}
                   icon={FiUsers}
                   iconColor="orange.400"
                 />
@@ -293,7 +293,7 @@ const Dashboard = () => {
                   aria-label="Profile"
                   icon={<FiUser />}
                   colorScheme="purple"
-                  variant="outline"
+                  variant="solid"
                   onClick={() => router.push("/dashboard/profile")}
                   title="Profile Settings"
                 />

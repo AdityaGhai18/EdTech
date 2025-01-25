@@ -42,11 +42,11 @@ interface Profile {
   first_name: string;
   last_name: string;
   phone_number?: string;
-  country?: string;
+  country?: string; // e.g. 'US','PE'
   kyc_level: "unverified" | "basic" | "verified";
   created_at?: string;
   updated_at?: string;
-  email?: string; // manually appended from session
+  email?: string; // from session
 }
 
 interface BankAccount {
@@ -56,9 +56,17 @@ interface BankAccount {
   account_holder?: string;
   bank_name?: string;
   iban?: string;
-  country?: string;
+  country?: string; // e.g. 'US','PE'
   created_at?: string;
   updated_at?: string;
+}
+
+interface CountryRow {
+  code: string;    // e.g. 'US','PE'
+  name: string;    // e.g. 'United States','Peru'
+  iso3?: string;   // e.g. 'USA','PER'
+  currency_code?: string;
+  is_active: boolean;
 }
 
 const ProfilePage = () => {
@@ -66,7 +74,7 @@ const ProfilePage = () => {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Local state for editing personal info
+  // Local form state for editing personal info (still stored but disabled in UI)
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -78,6 +86,9 @@ const ProfilePage = () => {
   const [newAccountNumber, setNewAccountNumber] = useState("");
   const [newCountry, setNewCountry] = useState("");
   const [newIban, setNewIban] = useState("");
+
+  // Countries list from supabase (used for the bank accounts part)
+  const [countries, setCountries] = useState<CountryRow[]>([]);
 
   const toast = useToast();
 
@@ -130,6 +141,16 @@ const ProfilePage = () => {
 
         if (bankError) throw bankError;
         setBankAccounts(bankData || []);
+
+        // 5) Fetch countries (is_active = true)
+        const { data: cData, error: cError } = await supabase
+          .from("countries")
+          .select("*")
+          .eq("is_active", true)
+          .order("name");
+
+        if (cError) throw cError;
+        setCountries(cData || []);
       } catch (error: any) {
         console.error("Error fetching profile or bank accounts:", error);
         toast({
@@ -146,35 +167,40 @@ const ProfilePage = () => {
     fetchProfileData();
   }, [toast]);
 
-  // Save changes to `profiles` table
+  // We keep this method if you still want to update or do other logic,
+  // but currently, the fields are disabled, so the user can't change them anyway.
   const handleUpdateProfile = async () => {
     if (!profile) return;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         throw new Error("Not authenticated");
       }
 
+      // If we wanted to allow updates, we'd pass the new values here.
+      // But the fields are disabled, so effectively no changes would happen.
       const updates = {
         id: session.user.id,
         first_name: firstName,
         last_name: lastName,
         phone_number: phoneNumber,
         country,
-        kyc_level: kycLevel, // you could let the user pick or only show?
+        kyc_level: kycLevel,
         updated_at: new Date().toISOString(),
       };
+      // No Changes Allowed
+      // const { error } = await supabase.from("profiles").upsert(updates);
+      // if (error) throw error;
 
-      const { error } = await supabase.from("profiles").upsert(updates);
-      if (error) throw error;
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
-        status: "success",
-        duration: 3000,
-      });
+      // toast({
+      //   title: "Profile updated",
+      //   description: "Your profile has been updated successfully",
+      //   status: "success",
+      //   duration: 3000,
+      // });
 
       setProfile((prev) =>
         prev ? { ...prev, ...updates } : (updates as Profile)
@@ -281,7 +307,6 @@ const ProfilePage = () => {
 
   // Example placeholder for changing password / 2FA
   const handleChangePassword = async () => {
-    // Typically: supabase.auth.updateUser({ password: newPassword });
     toast({
       title: "Password change is not yet implemented",
       status: "warning",
@@ -295,12 +320,7 @@ const ProfilePage = () => {
         <Flex h="100vh">
           <Sidebar />
           <Center ml="240px" w="calc(100% - 240px)" bg="gray.900">
-            <Spinner
-              size="xl"
-              thickness="4px"
-              speed="0.65s"
-              color="purple.500"
-            />
+            <Spinner size="xl" thickness="4px" speed="0.65s" color="purple.500" />
           </Center>
         </Flex>
       </ProtectedRoute>
@@ -335,7 +355,6 @@ const ProfilePage = () => {
                   Your Profile
                 </Heading>
 
-                {/* If profile is missing for some reason, show alert */}
                 {!profile && (
                   <Alert status="error" mb={6} borderRadius="md">
                     <AlertIcon />
@@ -382,6 +401,7 @@ const ProfilePage = () => {
                             onChange={(e) => setFirstName(e.target.value)}
                             bg="whiteAlpha.100"
                             color="white"
+                            isDisabled  // <-- disable editing
                           />
                         </FormControl>
 
@@ -393,6 +413,7 @@ const ProfilePage = () => {
                             onChange={(e) => setLastName(e.target.value)}
                             bg="whiteAlpha.100"
                             color="white"
+                            isDisabled  // <-- disable editing
                           />
                         </FormControl>
 
@@ -403,6 +424,7 @@ const ProfilePage = () => {
                             isReadOnly
                             bg="whiteAlpha.100"
                             color="white"
+                            isDisabled  // <-- disable editing
                           />
                         </FormControl>
 
@@ -414,25 +436,38 @@ const ProfilePage = () => {
                             onChange={(e) => setPhoneNumber(e.target.value)}
                             bg="whiteAlpha.100"
                             color="white"
+                            isDisabled  // <-- disable editing
                           />
                         </FormControl>
 
                         <FormControl>
                           <FormLabel color="white">Country</FormLabel>
-                          <Input
-                            placeholder="e.g., US, PE, MX..."
+                          <Select
+                            placeholder="Select your country"
                             value={country}
                             onChange={(e) => setCountry(e.target.value)}
                             bg="whiteAlpha.100"
                             color="white"
-                          />
+                            isDisabled  // <-- disable editing
+                          >
+                            {countries.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </Select>
                         </FormControl>
 
+                        {/* 
+                          Since fields are disabled, 
+                          this button won't actually change anything.
+                        */}
                         <Button
                           colorScheme="purple"
                           size="md"
                           onClick={handleUpdateProfile}
                           alignSelf="flex-start"
+                          disabled
                         >
                           Update Profile
                         </Button>
@@ -464,9 +499,7 @@ const ProfilePage = () => {
                             {bankAccounts.map((acct) => (
                               <Tr key={acct.id}>
                                 <Td color="white">{acct.bank_name || "-"}</Td>
-                                <Td color="white">
-                                  {acct.account_number || ""}
-                                </Td>
+                                <Td color="white">{acct.account_number}</Td>
                                 <Td color="white">{acct.iban || "-"}</Td>
                                 <Td color="white">{acct.country || "-"}</Td>
                                 <Td>
@@ -521,15 +554,22 @@ const ProfilePage = () => {
                             color="white"
                           />
                         </FormControl>
+
                         <FormControl>
                           <FormLabel color="white">Country</FormLabel>
-                          <Input
-                            placeholder="e.g., US, PE, MX..."
+                          <Select
+                            placeholder="Select country for this account"
                             value={newCountry}
                             onChange={(e) => setNewCountry(e.target.value)}
                             bg="whiteAlpha.100"
                             color="white"
-                          />
+                          >
+                            {countries.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </Select>
                         </FormControl>
 
                         <Button
@@ -553,7 +593,6 @@ const ProfilePage = () => {
                       <Button colorScheme="purple" onClick={handleChangePassword}>
                         Change Password
                       </Button>
-                      {/* Add toggles or forms for 2FA, device management, etc. */}
                     </TabPanel>
 
                     {/* NOTIFICATIONS TAB */}
@@ -564,7 +603,6 @@ const ProfilePage = () => {
                       <Text color="whiteAlpha.800" mb={4}>
                         Toggle email/SMS notifications, etc.
                       </Text>
-                      {/* Example placeholders */}
                       <Alert status="info">
                         <AlertIcon />
                         Notification settings not yet implemented.
@@ -581,4 +619,5 @@ const ProfilePage = () => {
   );
 };
 
+// TODO: IMPLEMENT REAL KYC
 export default ProfilePage;
