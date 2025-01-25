@@ -365,9 +365,9 @@ const ProfilePage = () => {
                 <Tabs variant="soft-rounded" colorScheme="purple">
                   <TabList mb={4}>
                     <Tab>Personal Info</Tab>
-                    <Tab>Bank Accounts</Tab>
-                    <Tab>Security</Tab>
-                    <Tab>Notifications</Tab>
+                    <Tab ml={4}>Bank Accounts</Tab>
+                    <Tab ml={4}>Security</Tab>
+                    <Tab ml={4}>Notifications</Tab>
                   </TabList>
 
                   <TabPanels>

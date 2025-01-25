@@ -148,20 +148,21 @@ const HeroSection: React.FC = () => {
           <Box
             height="600px"
             position="absolute"
-            display={{ base: 'none', lg: 'block' }}
-            left={{ lg: '60%', xl: '55%' }}
+            // display={{ base: 'none', lg: 'block' }}
+            left={{ lg: '50%', xl: '55%' }}
+            // bottom={{ lg: '25%', xl: '10%' }}
             width="80vw"
             maxW="1100px"
-            margin="0 auto"
+            // margin="0 auto"
           >
             <FallInPlace delay={1}>
               <Box overflow="hidden" height="100%">
                 <Image
-                  src="/static/screenshots/list.png"
-                  width={1200}
-                  height={762}
+                  src="/static/images/banner-kipu.png"
+                  width={600}
+                  height={600}
                   alt="Screenshot of Kipu's dashboard"
-                  quality="75"
+                  quality="100"
                   priority
                 />
               </Box>
