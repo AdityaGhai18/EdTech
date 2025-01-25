@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   Box,
   Flex,
@@ -83,6 +83,12 @@ const MatchCard = ({
 };
 
 const TransferMatchPage = () => {
+    return (<Suspense fallback={<div>Loading...</div>}>
+    <TransferMatchContent />
+  </Suspense>)
+}
+
+const TransferMatchContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
