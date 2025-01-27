@@ -5,7 +5,7 @@ export default {
       name: 'Daniela Gomez',
       description: 'International Student, Peru',
       avatar:
-        'https://pbs.twimg.com/profile_images/1470742164024008706/k-eXHtu0_normal.jpg', // Replace with real avatar if available
+        '/static/images/avatar.jpg', // Replace with real avatar if available
       children: (
         <>
           “Kipu has revolutionized how my family supports me while I study

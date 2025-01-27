@@ -31,7 +31,7 @@ export const Logo = ({ href = '/', onClick, isSidebar = false }: LogoProps) => {
         p="1"
         borderRadius="sm"
         onClick={onClick}
-        color={isSidebar ? 'white' : 'white'}
+        color={isSidebar ? 'white' : 'inherit'}
         _hover={{ textDecoration: 'none' }}
       >
         {logo}

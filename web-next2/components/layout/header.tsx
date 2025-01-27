@@ -56,6 +56,7 @@ export const Header = (props: HeaderProps) => {
                 })
               }
             }}
+            
           />
           <Navigation />
         </Flex>

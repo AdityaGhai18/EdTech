@@ -37,9 +37,9 @@ import {
   FiTrendingUp,
   FiUserPlus,
 } from 'react-icons/fi'
-
 import * as React from 'react'
 
+// Custom components (import your local ones)
 import { ButtonLink } from '#components/button-link/button-link'
 import { Faq } from '#components/faq'
 import { Features } from '#components/features'
@@ -54,16 +54,17 @@ import { FallInPlace } from '#components/motion/fall-in-place'
 import { Pricing } from '#components/pricing/pricing'
 import { Testimonial, Testimonials } from '#components/testimonials'
 import { Em } from '#components/typography'
+
 import faq from '#data/faq'
 import pricing from '#data/pricing'
 import testimonials from '#data/testimonials'
 
-// If you use Next.js 13 with app router, you can export metadata normally
+// If using the app router in Next.js 13, you can export metadata normally:
 // export const metadata: Metadata = { ... }
 
 const Home: NextPage = () => {
   return (
-    <Box>
+    <Box className="kipu-home-page">
       <HeroSection />
       <HighlightsSection />
       <FeaturesSection />
@@ -74,51 +75,61 @@ const Home: NextPage = () => {
   )
 }
 
+/* ----------------------------------------------------------------------------
+ * Hero Section
+ * ------------------------------------------------------------------------- */
 const HeroSection: React.FC = () => {
   return (
-    <Box position="relative" overflow="hidden">
+    <Box position="relative" overflow="hidden" className="hero-section">
       <BackgroundGradient height="100%" zIndex="-1" />
       <Container maxW="container.xl" pt={{ base: 40, lg: 60 }} pb="40">
-        {/** 
-         * 1) Use a Stack to position hero text and image side-by-side on large
-         *    screens. On mobile, they stack vertically by default.
+        {/* 
+         * Use a responsive Stack to position Hero text and image side by side. 
+         * On smaller screens, they stack vertically. 
          */}
         <Stack
           direction={{ base: 'column', lg: 'row' }}
           alignItems="center"
           spacing={{ base: 10, lg: 24 }}
         >
-          {/** 2) Hero text container */}
-          <Box flex="1">
+          {/* Hero Text Container */}
+          <Box flex="1" className="hero-text-container">
             <Hero
               id="home"
               justifyContent="flex-start"
               px="0"
               title={
                 <FallInPlace>
-                  Send Money Across Borders
-                  <Br /> at Near-Zero Cost
+                  <Heading as="h1" size="2xl" lineHeight="short" mb={4}>
+                    Seamless Global Payments <Br /> at Near-Zero Cost
+                  </Heading>
                 </FallInPlace>
               }
               description={
                 <FallInPlace delay={0.4} fontWeight="medium">
-                  Kipu is an <Em>AI-powered, blockchain-based platform</Em> that
-                  empowers you to transfer funds internationally without hidden
-                  fees or delays. Our <Em>USDU stablecoin network</Em> is backed
-                  1:1 by USD reserves, ensuring trust and instant liquidity for
-                  all your cross-border transactions.
+                  Kipu is an <Em>AI-driven, blockchain-based</Em> platform that
+                  enables rapid, low-cost international money transfers. Our{' '}
+                  <Em>USDU stablecoin</Em> is always backed by real USD reserves,
+                  guaranteeing trust, liquidity, and security for all your
+                  cross-border transactions.
                 </FallInPlace>
               }
             >
               <FallInPlace delay={0.8}>
                 <ButtonGroup spacing={4} alignItems="center" mt={6}>
-                  <ButtonLink colorScheme="primary" size="lg" href="/signup">
-                    Sign Up Now
+                  <ButtonLink
+                    colorScheme="primary"
+                    size="lg"
+                    href="/signup"
+                    className="cta-signup-button"
+                  >
+                    Get Started
                   </ButtonLink>
                   <ButtonLink
                     size="lg"
-                    href="#features"
                     variant="outline"
+                    href="#features"
+                    className="cta-learnmore-button"
                     rightIcon={
                       <Icon
                         as={FiArrowRight}
@@ -139,13 +150,9 @@ const HeroSection: React.FC = () => {
             </Hero>
           </Box>
 
-          {/** 3) Image container, no absolute positioning; let it flex */}
-          <Box flex="1">
+          {/* Hero Image Container */}
+          <Box flex="1" className="hero-image-container">
             <FallInPlace delay={1}>
-              {/**
-               * 4) Constrain the image height on mobile (e.g., 300px).
-               *    On larger screens, it can scale to 500 or 600px.
-               */}
               <Box
                 position="relative"
                 width="100%"
@@ -154,11 +161,9 @@ const HeroSection: React.FC = () => {
               >
                 <Image
                   src="/static/images/banner-kipu.png"
-                  alt="Screenshot of Kipu's dashboard"
+                  alt="Kipu dashboard screenshot"
                   fill
-                  style={{
-                    objectFit: 'contain',
-                  }}
+                  style={{ objectFit: 'contain' }}
                   quality={100}
                   priority
                 />
@@ -168,42 +173,44 @@ const HeroSection: React.FC = () => {
         </Stack>
       </Container>
 
+      {/* Hero Bottom Features */}
       <Features
         id="benefits"
         columns={[1, 2, 4]}
         iconSize={4}
         innerWidth="container.xl"
         pt="20"
+        className="hero-bottom-features"
         features={[
           {
-            title: 'Near-Zero Fees',
+            title: 'Minimal Fees',
             icon: FiSmile,
             description:
-              'Stop wasting money on high wire transfers. Kipu leverages AI-based liquidity to cut transaction fees to almost zero.',
+              'Stop overpaying for wire transfers. Our AI-optimized liquidity slashes transfer costs dramatically.',
             iconPosition: 'left',
             delay: 0.6,
           },
           {
-            title: 'Instant Liquidity',
+            title: 'Instant Access',
             icon: FiSliders,
             description:
-              'No more waiting days for funds. USDU stablecoins settle instantly, so recipients have immediate access to cash.',
+              'Don’t wait days for funds to settle. With USDU stablecoins, recipients withdraw cash immediately.',
             iconPosition: 'left',
             delay: 0.8,
           },
           {
-            title: 'Trusted & Stable',
+            title: 'Transparent & Stable',
             icon: FiGrid,
             description:
-              'USDU is backed 1:1 by USD reserves in each region, ensuring security and local on/off ramps wherever you go.',
+              'USDU’s 1:1 USD backing builds trust. Our local reserves ensure consistent liquidity and stability.',
             iconPosition: 'left',
             delay: 1,
           },
           {
-            title: 'Easy Transfers',
+            title: 'Effortless Transfers',
             icon: FiThumbsUp,
             description:
-              'Send funds directly to friends, family, or yourself in another country with just a few clicks.',
+              'Whether paying tuition or supporting family, send cross-border funds with just a few taps.',
             iconPosition: 'left',
             delay: 1.1,
           },
@@ -214,64 +221,37 @@ const HeroSection: React.FC = () => {
   )
 }
 
+/* ----------------------------------------------------------------------------
+ * Highlights Section
+ * ------------------------------------------------------------------------- */
 const HighlightsSection = () => {
   const { value, onCopy, hasCopied } = useClipboard('https://mykipu.com')
 
   return (
-    <Highlights>
+    <Highlights className="highlights-section">
       <HighlightsItem
         colSpan={[1, null, 2]}
-        title="Simplify Global Money Transfers"
+        title="Global Transfers, Simplified"
+        className="highlight-item"
       >
-        {/* <VStack alignItems="flex-start" spacing="8"> */}
-          <Text color="muted" fontSize="xl">
-            With Kipu, you can deposit local fiat, instantly receive stablecoins
-            (USDU), and withdraw them in another country’s currency—all while
-            skipping the typical wire fees. Whether you’re a student or sending
-            money to family back home, Kipu makes cross-border payments fast,
-            transparent, and hassle-free.
-          </Text>
-          {/* <Flex
-            rounded="full"
-            borderWidth="1px"
-            flexDirection="row"
-            alignItems="center"
-            py="1"
-            ps="8"
-            pe="2"
-            bg="primary.900"
-            _dark={{ bg: 'gray.900' }}
-          >
-            <Box>
-              <Text color="yellow.400" display="inline">
-                Visit:
-              </Text>{' '}
-              <Text color="cyan.300" display="inline">
-                {value}
-              </Text>
-            </Box>
-            <IconButton
-              icon={hasCopied ? <FiCheck /> : <FiCopy />}
-              aria-label="Copy URL"
-              onClick={onCopy}
-              variant="ghost"
-              ms="4"
-              isRound
-              color="white"
-            />
-          </Flex> */}
-        {/* </VStack> */}
+        <Text color="muted" fontSize="xl" mb={4}>
+          Kipu eliminates the hurdles of sending money abroad. Deposit your fiat,
+          receive USDU instantly, and cash out in another country’s currency
+          without inflated fees or endless delays. Whether you’re supporting
+          family or paying for studies, Kipu’s streamlined process is fast,
+          transparent, and hassle-free.
+        </Text>
       </HighlightsItem>
 
-      <HighlightsItem title="Why Kipu?">
+      <HighlightsItem title="Why Choose Kipu?" className="highlight-item">
         <Text color="muted" fontSize="lg">
-          Traditional remittance services are slow, expensive, and often lack
-          transparency. Kipu solves these issues with:
+          Traditional remittance services are slow, pricey, and lack transparency.
+          With Kipu, you get:
         </Text>
-        <Text mt="2" color="muted" fontSize="lg">
-          • AI-powered matching to cut fees <Br />
-          • 1:1 USD-backed stablecoins to ensure value <Br />
-          • Local reserves for immediate liquidity and payout
+        <Text mt={2} color="muted" fontSize="lg">
+          • AI-optimized liquidity for minimal fees <Br />
+          • 1:1 USD-backed stablecoin for confidence <Br />
+          • Local reserves to ensure quick, hassle-free payouts
         </Text>
       </HighlightsItem>
 
@@ -280,44 +260,47 @@ const HighlightsSection = () => {
         description="International Student, Peru"
         avatar="/static/images/avatar.jpg"
         gradient={['pink.200', 'purple.500']}
+        className="highlight-testimonial"
       >
-        “Kipu has saved me so much time and money! My parents can send dollars
-        from the US and I withdraw in soles the same day—no crazy fees. It’s
-        truly seamless.”
+        “Kipu has saved me time, money, and headaches! My parents send dollars
+        from the U.S. and I can instantly withdraw in soles back home. No more
+        hidden fees or endless waits.”
       </HighlightsTestimonialItem>
 
       <HighlightsItem
         colSpan={[1, null, 2]}
-        title="Engineered for Maximum Impact"
+        title="Built for Global Impact"
+        className="highlight-item"
       >
-        <Text color="muted" fontSize="lg">
-          Whether you’re supporting a loved one abroad or managing tuition
-          payments, Kipu’s near-instant settlement and stablecoin technology
-          guarantee peace of mind. Say goodbye to cumbersome wire fees and
-          unpredictable exchange rates—start sending smarter, faster, and
-          cheaper.
+        <Text color="muted" fontSize="lg" mb={4}>
+          Whether you’re sending money to loved ones or covering education
+          expenses, Kipu’s near-instant settlement and stablecoin-powered
+          transfers provide true peace of mind. Say goodbye to hefty wire fees
+          and unpredictable exchange rates—start experiencing a smarter, faster,
+          and fairer way to send funds.
         </Text>
-        <Wrap mt="8">
+        <Wrap mt={8}>
           {[
             'AI-driven liquidity',
-            '1:1 stablecoin reserves',
+            '1:1 USD reserves',
             'Instant cross-border payouts',
-            'Regulated banking partners',
-            'User-friendly app',
-            'No hidden fees',
-            'Supports multiple currencies',
-            'Secure & compliant',
+            'Regulated partners',
+            'Easy-to-use app',
+            'No hidden charges',
+            'Multi-currency support',
+            'Compliance-ready',
             'Real-time notifications',
-            'Trusted by students abroad',
-          ].map((value) => (
+            'Loved by students abroad',
+          ].map((tagItem) => (
             <Tag
-              key={value}
+              key={tagItem}
               variant="subtle"
               colorScheme="purple"
               rounded="full"
-              px="3"
+              px={3}
+              className="highlight-tag"
             >
-              {value}
+              {tagItem}
             </Tag>
           ))}
         </Wrap>
@@ -326,6 +309,9 @@ const HighlightsSection = () => {
   )
 }
 
+/* ----------------------------------------------------------------------------
+ * Features Section
+ * ------------------------------------------------------------------------- */
 const FeaturesSection = () => {
   return (
     <Features
@@ -336,82 +322,85 @@ const FeaturesSection = () => {
           fontSize={['2xl', null, '4xl']}
           textAlign="left"
           as="p"
+          className="features-title"
         >
-          Discover Kipu’s Core Advantages
+          Dive Into Kipu’s Key Advantages
         </Heading>
       }
       description={
         <>
-          We go beyond traditional remittances by leveraging stablecoins,
-          blockchain tech, and AI-based liquidity. Kipu offers everything you
-          need for secure, frictionless, and cost-effective money transfers.
+          We go beyond ordinary remittances by harnessing stablecoin tech,
+          blockchain efficiency, and AI-driven liquidity. Experience fast,
+          secure, and cost-effective cross-border money transfers like never
+          before.
         </>
       }
       align="left"
       columns={[1, 2, 3]}
       iconSize={4}
+      className="features-section"
       features={[
         {
-          title: 'Zero-Cost Transfers',
+          title: 'Near-Zero Fees',
           icon: FiBox,
           description:
-            'Our AI-driven engine matches currency flows in real-time, letting you send money with negligible or zero fees.',
+            'Our AI engine expertly pairs currency flows, drastically reducing transaction costs.',
           variant: 'inline',
         },
         {
-          title: 'AI Liquidity Matching',
+          title: 'AI Liquidity',
           icon: FiLock,
           description:
-            'Eliminates the need for large reserve pools by automatically pairing user transactions across borders.',
+            'Forget large reserve pools. Kipu’s engine automatically balances user transactions in real time.',
           variant: 'inline',
         },
         {
-          title: 'Backed 1:1 by USD',
+          title: 'USD-Backed Stablecoin',
           icon: FiSearch,
           description:
-            'Our USDU stablecoins are pegged to the dollar, guaranteeing stable value and smooth on/off ramps.',
+            'Each USDU token is redeemable 1:1 for USD, making every transaction transparent and dependable.',
           variant: 'inline',
         },
         {
           title: 'Instant Settlement',
           icon: FiUserPlus,
           description:
-            'No more waiting days for funds to clear. Recipients can withdraw in local fiat almost immediately.',
+            'Funds clear in near real-time, allowing recipients to withdraw in local currencies almost immediately.',
           variant: 'inline',
         },
         {
-          title: 'Multi-Region Expansion',
+          title: 'Global Expansion',
           icon: FiFlag,
           description:
-            'We start with the U.S.–LATAM corridor, then expand to other high-volume remittance channels (Mexico, India, Australia).',
+            'Our initial focus is the U.S.–LATAM corridor, followed by other high-volume remittance markets.',
           variant: 'inline',
         },
         {
-          title: 'Smartphone-Friendly',
+          title: 'Mobile-First Design',
           icon: FiTrendingUp,
           description:
-            'Kipu’s mobile-first approach means anyone can transact on the go, track funds, and manage stablecoins with ease.',
+            'Manage transfers, track balances, and stay updated on the go with our intuitive mobile app.',
           variant: 'inline',
         },
         {
-          title: 'Compliance Built-In',
+          title: 'Inherent Compliance',
           icon: FiToggleLeft,
           description:
-            'Robust KYC and AML checks ensure trust and meet regulatory requirements in all supported regions.',
+            'Robust KYC and AML checks ensure we meet regulatory guidelines across supported regions.',
           variant: 'inline',
         },
         {
-          title: 'Advanced Security',
+          title: 'Industry-Leading Security',
           icon: FiTerminal,
           description:
-            'End-to-end encryption, secure bank integrations, and audited smart contracts keep your data and funds protected.',
+            'Advanced encryption, trusted banking integrations, and audited smart contracts protect your funds and data.',
           variant: 'inline',
         },
         {
-          title: 'Simple, Transparent UX',
+          title: 'User-Centric Interface',
           icon: FiCode,
           description:
-            'No jargon or hidden steps. Our interface is designed for anyone to send, hold, or withdraw money with minimal clicks.',
+            'No complex jargon or hidden steps. Send, receive, and convert money in just a few clicks.',
           variant: 'inline',
         },
       ]}
@@ -419,79 +408,89 @@ const FeaturesSection = () => {
   )
 }
 
+/* ----------------------------------------------------------------------------
+ * Testimonials Section
+ * ------------------------------------------------------------------------- */
 const TestimonialsSection = () => {
-  // existing testimonial logic
+  // Example of distributing testimonials into columns
   const columns = React.useMemo(() => {
     return testimonials.items.reduce<Array<typeof testimonials.items>>(
-      (columns, t, i) => {
-        columns[i % 3].push(t)
-        return columns
+      (acc, testimonial, i) => {
+        acc[i % 3].push(testimonial)
+        return acc
       },
-      [[], [], []],
+      [[], [], []]
     )
   }, [])
 
   return (
     <Testimonials
-      title="What Our Early Adopters Say"
+      title="What Our Early Adopters Are Saying"
       columns={[1, 2, 3]}
       innerWidth="container.xl"
+      className="testimonials-section"
     >
-      <>
-        {columns.map((column, i) => (
-          <Stack key={i} spacing="8">
-            {column.map((t, i) => (
-              <Testimonial key={i} {...t} />
-            ))}
-          </Stack>
-        ))}
-      </>
+      {columns.map((column, columnIndex) => (
+        <Stack key={columnIndex} spacing={8}>
+          {column.map((item, itemIndex) => (
+            <Testimonial key={itemIndex} {...item} />
+          ))}
+        </Stack>
+      ))}
     </Testimonials>
   )
 }
 
+/* ----------------------------------------------------------------------------
+ * Pricing Section
+ * ------------------------------------------------------------------------- */
 const PricingSection = () => {
   return (
     <Pricing
-      title="Early Access & Future Plans"
-      description="Kipu is free while in beta. Experience zero-cost money transfers now. Eventually, micro-fees may apply, but our mission remains: make remittances near-free for everyone."
+      title="Early Access & Beyond"
+      description="While Kipu is in beta, transfers are free. Enjoy the simplicity of near-zero cost remittances today. In the future, small micro-fees may be introduced, but our goal remains the same: deliver affordable, accessible cross-border payments."
       plans={pricing.plans}
       features={pricing.features}
+      className="pricing-section"
     >
-      <Text p="8" textAlign="center" color="muted">
-        Sign up during beta to lock in zero-fee transfers and help us shape the
-        future of global remittances.
+      <Text p={8} textAlign="center" color="muted">
+        Join our beta to secure zero-fee transfers and help shape a more
+        transparent, borderless financial future.
       </Text>
     </Pricing>
   )
 }
 
+/* ----------------------------------------------------------------------------
+ * FAQ Section
+ * ------------------------------------------------------------------------- */
 const FaqSection = () => {
   return (
     <Faq
-      title="Frequently Asked Questions"
+      title="Your Questions, Answered"
       items={[
         {
-          q: 'How does Kipu offer near-zero fees?',
+          q: 'How can Kipu offer near-zero fees?',
           a:
-            'Our AI matching engine pairs users who want to exchange currencies in opposite directions. This “netting” effect drastically reduces liquidity requirements and fees.',
+            'Our AI-driven engine smartly matches users who need opposite currency flows, significantly reducing liquidity overhead and fees.',
         },
         {
-          q: 'Is Kipu’s stablecoin (USDU) really backed 1:1 by USD?',
+          q: 'Is USDU truly backed 1:1 by USD?',
           a:
-            'Yes. We hold reserves in segregated, highly liquid local assets and USD. Each USDU token is redeemable 1:1 for USD in supported regions.',
+            'Absolutely. We maintain segregated, highly liquid reserves so each USDU token can always be redeemed for USD in supported regions.',
         },
         {
-          q: 'Which countries do you support first?',
+          q: 'Which countries are first in line?',
           a:
-            'We’re starting with the US–LATAM corridor (focus on Peru), followed by expansions to Mexico, India, and Australia.',
+            'We’re rolling out initially for the U.S.–Peru corridor in LATAM, with Mexico, India, and Australia next in our expansion roadmap.',
         },
         {
-          q: 'Are there any minimum or maximum transfer limits?',
+          q: 'Do you have transfer limits?',
           a:
-            'During our beta, transfer limits may apply based on user KYC level and local regulatory guidelines. Check your dashboard for the latest details.',
+            'During our beta phase, user-specific KYC levels and local regulations may impose certain caps. Keep an eye on your dashboard for the latest info.',
         },
       ]}
+      className="faq-section"
     />
   )
 }
