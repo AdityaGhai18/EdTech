@@ -58,111 +58,108 @@ import faq from '#data/faq'
 import pricing from '#data/pricing'
 import testimonials from '#data/testimonials'
 
-// 1. Updated Metadata
-// export const metadata: Metadata = {
-//   title: 'Kipu – AI-Powered Global Remittances',
-//   description:
-//     'Send money across borders at near-zero cost with Kipu. Instant stablecoin transfers that eliminate hidden fees and wait times.',
-// }
+// If you use Next.js 13 with app router, you can export metadata normally
+// export const metadata: Metadata = { ... }
 
 const Home: NextPage = () => {
   return (
     <Box>
       <HeroSection />
-
       <HighlightsSection />
-
       <FeaturesSection />
-
       <TestimonialsSection />
-
       <PricingSection />
-
       <FaqSection />
     </Box>
   )
 }
 
-// 2. Hero Section
 const HeroSection: React.FC = () => {
   return (
     <Box position="relative" overflow="hidden">
       <BackgroundGradient height="100%" zIndex="-1" />
       <Container maxW="container.xl" pt={{ base: 40, lg: 60 }} pb="40">
-        <Stack direction={{ base: 'column', lg: 'row' }} alignItems="center">
-          <Hero
-            id="home"
-            justifyContent="flex-start"
-            px="0"
-            // 2.1 Headline
-            title={
-              <FallInPlace>
-                Send Money Across Borders
-                <Br /> at Near-Zero Cost
+        {/** 
+         * 1) Use a Stack to position hero text and image side-by-side on large
+         *    screens. On mobile, they stack vertically by default.
+         */}
+        <Stack
+          direction={{ base: 'column', lg: 'row' }}
+          alignItems="center"
+          spacing={{ base: 10, lg: 24 }}
+        >
+          {/** 2) Hero text container */}
+          <Box flex="1">
+            <Hero
+              id="home"
+              justifyContent="flex-start"
+              px="0"
+              title={
+                <FallInPlace>
+                  Send Money Across Borders
+                  <Br /> at Near-Zero Cost
+                </FallInPlace>
+              }
+              description={
+                <FallInPlace delay={0.4} fontWeight="medium">
+                  Kipu is an <Em>AI-powered, blockchain-based platform</Em> that
+                  empowers you to transfer funds internationally without hidden
+                  fees or delays. Our <Em>USDU stablecoin network</Em> is backed
+                  1:1 by USD reserves, ensuring trust and instant liquidity for
+                  all your cross-border transactions.
+                </FallInPlace>
+              }
+            >
+              <FallInPlace delay={0.8}>
+                <ButtonGroup spacing={4} alignItems="center" mt={6}>
+                  <ButtonLink colorScheme="primary" size="lg" href="/signup">
+                    Sign Up Now
+                  </ButtonLink>
+                  <ButtonLink
+                    size="lg"
+                    href="#features"
+                    variant="outline"
+                    rightIcon={
+                      <Icon
+                        as={FiArrowRight}
+                        sx={{
+                          transitionProperty: 'common',
+                          transitionDuration: 'normal',
+                          '.chakra-button:hover &': {
+                            transform: 'translate(5px)',
+                          },
+                        }}
+                      />
+                    }
+                  >
+                    Learn More
+                  </ButtonLink>
+                </ButtonGroup>
               </FallInPlace>
-            }
-            // 2.2 Subheadline / Hero description
-            description={
-              <FallInPlace delay={0.4} fontWeight="medium">
-                Kipu is an <Em>AI-powered, blockchain-based platform</Em> that
-                empowers you to transfer funds internationally without hidden
-                fees or delays. Our <Em>USDU stablecoin network</Em> is backed
-                1:1 by USD reserves, ensuring trust and instant liquidity for
-                all your cross-border transactions.
-              </FallInPlace>
-            }
-          >
-            <FallInPlace delay={0.8}>
-              {/* Action Buttons */}
-              <ButtonGroup spacing={4} alignItems="center" mt={6}>
+            </Hero>
+          </Box>
 
-                {/* 2.3 Primary CTA */}
-                <ButtonLink colorScheme="primary" size="lg" href="/signup">
-                  Sign Up Now
-                </ButtonLink>
-                {/* 2.4 Secondary CTA */}
-                <ButtonLink
-                  size="lg"
-                  href="#features"
-                  variant="outline"
-                  rightIcon={
-                    <Icon
-                      as={FiArrowRight}
-                      sx={{
-                        transitionProperty: 'common',
-                        transitionDuration: 'normal',
-                        '.chakra-button:hover &': {
-                          transform: 'translate(5px)',
-                        },
-                      }}
-                    />
-                  }
-                >
-                  Learn More
-                </ButtonLink>
-              </ButtonGroup>
-            </FallInPlace>
-          </Hero>
-
-          {/* Example Image or Screenshot (optional) */}
-          <Box
-            height="600px"
-            position="absolute"
-            // display={{ base: 'none', lg: 'block' }}
-            left={{ lg: '50%', xl: '55%' }}
-            // bottom={{ lg: '25%', xl: '10%' }}
-            width="80vw"
-            maxW="1100px"
-            // margin="0 auto"
-          >
+          {/** 3) Image container, no absolute positioning; let it flex */}
+          <Box flex="1">
             <FallInPlace delay={1}>
-              <Box overflow="hidden" height="100%">
+              {/**
+               * 4) Constrain the image height on mobile (e.g., 300px).
+               *    On larger screens, it can scale to 500 or 600px.
+               */}
+              <Box
+                position="relative"
+                width="100%"
+                height={{ base: '300px', md: '400px', lg: '500px' }}
+                overflow="hidden"
+              >
                 <Image
                   src="/static/images/banner-kipu.png"
-                  width={600}
-                  height={600}
                   alt="Screenshot of Kipu's dashboard"
-                  quality="100"
+                  fill
+                  style={{
+                    objectFit: 'contain',
+                  }}
+                  quality={100}
                   priority
                 />
               </Box>
@@ -171,7 +168,6 @@ const HeroSection: React.FC = () => {
         </Stack>
       </Container>
 
-      {/* 2.5 Quick Benefits (Optional) */}
       <Features
         id="benefits"
         columns={[1, 2, 4]}
@@ -218,18 +214,16 @@ const HeroSection: React.FC = () => {
   )
 }
 
-// 3. Highlights Section
 const HighlightsSection = () => {
   const { value, onCopy, hasCopied } = useClipboard('https://mykipu.com')
 
   return (
     <Highlights>
-      {/* 3.1 First Highlight: Brief Intro/CTA */}
       <HighlightsItem
         colSpan={[1, null, 2]}
         title="Simplify Global Money Transfers"
       >
-        <VStack alignItems="flex-start" spacing="8">
+        {/* <VStack alignItems="flex-start" spacing="8"> */}
           <Text color="muted" fontSize="xl">
             With Kipu, you can deposit local fiat, instantly receive stablecoins
             (USDU), and withdraw them in another country’s currency—all while
@@ -237,9 +231,7 @@ const HighlightsSection = () => {
             money to family back home, Kipu makes cross-border payments fast,
             transparent, and hassle-free.
           </Text>
-
-          {/* Example usage: Copy link or sign-up reference */}
-          <Flex
+          {/* <Flex
             rounded="full"
             borderWidth="1px"
             flexDirection="row"
@@ -267,11 +259,10 @@ const HighlightsSection = () => {
               isRound
               color="white"
             />
-          </Flex>
-        </VStack>
+          </Flex> */}
+        {/* </VStack> */}
       </HighlightsItem>
 
-      {/* 3.2 Secondary Highlight: Problem-Solution Emphasis */}
       <HighlightsItem title="Why Kipu?">
         <Text color="muted" fontSize="lg">
           Traditional remittance services are slow, expensive, and often lack
@@ -284,7 +275,6 @@ const HighlightsSection = () => {
         </Text>
       </HighlightsItem>
 
-      {/* 3.3 Testimonial Example (Social Proof) */}
       <HighlightsTestimonialItem
         name="Daniela G."
         description="International Student, Peru"
@@ -296,7 +286,6 @@ const HighlightsSection = () => {
         truly seamless.”
       </HighlightsTestimonialItem>
 
-      {/* 3.4 Additional Info Highlight */}
       <HighlightsItem
         colSpan={[1, null, 2]}
         title="Engineered for Maximum Impact"
@@ -337,7 +326,6 @@ const HighlightsSection = () => {
   )
 }
 
-// 4. Features Section
 const FeaturesSection = () => {
   return (
     <Features
@@ -431,10 +419,8 @@ const FeaturesSection = () => {
   )
 }
 
-// 5. Testimonials Section
 const TestimonialsSection = () => {
-  // You can still use the existing testimonial logic if you wish
-  // or replace it with Kipu-specific testimonials directly.
+  // existing testimonial logic
   const columns = React.useMemo(() => {
     return testimonials.items.reduce<Array<typeof testimonials.items>>(
       (columns, t, i) => {
@@ -452,7 +438,6 @@ const TestimonialsSection = () => {
       innerWidth="container.xl"
     >
       <>
-        {/* Example: Map existing data or create new testimonials */}
         {columns.map((column, i) => (
           <Stack key={i} spacing="8">
             {column.map((t, i) => (
@@ -465,7 +450,6 @@ const TestimonialsSection = () => {
   )
 }
 
-// 6. Pricing Section (If relevant, can be repurposed for “Get Early Access”)
 const PricingSection = () => {
   return (
     <Pricing
@@ -482,7 +466,6 @@ const PricingSection = () => {
   )
 }
 
-// 7. FAQ Section
 const FaqSection = () => {
   return (
     <Faq
