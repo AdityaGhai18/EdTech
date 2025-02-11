@@ -299,7 +299,7 @@ const Dashboard = () => {
                   iconType={FiGlobe}
                   iconColor="purple.400"
                 />
-                <StatCard
+               {/*  <StatCard
                   title="Total Volume"
                   value={`$${stats.totalVolume.toLocaleString()}`}
                   iconType={FiActivity} // or FiDollarSign if you'd like
@@ -310,7 +310,7 @@ const Dashboard = () => {
                   value={stats.userCount.toLocaleString()}
                   iconType={FiUsers}
                   iconColor="orange.400"
-                />
+                /> */}
               </SimpleGrid>
 
               {/* Quick Actions */}
