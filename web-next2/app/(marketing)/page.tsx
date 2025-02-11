@@ -261,6 +261,7 @@ const HighlightsSection = () => {
         avatar="/static/images/avatar.jpg"
         gradient={['pink.200', 'purple.500']}
         className="highlight-testimonial"
+        
       >
         “Kipu has saved me time, money, and headaches! My parents send dollars
         from the U.S. and I can instantly withdraw in soles back home. No more

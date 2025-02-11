@@ -77,7 +77,7 @@ export const HighlightsTestimonialItem: React.FC<
       <Testimonial
         name={name}
         description={
-          <Box as="span" color="whiteAlpha.700">
+          <Box as="span" color="muted">
             {description}
           </Box>
         }
