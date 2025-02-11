@@ -17,7 +17,6 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import {
-  FiDollarSign,
   FiUsers,
   FiActivity,
   FiGlobe,
@@ -40,7 +39,7 @@ interface Transaction {
   id: string;
   user_id: string;
   amount: number;
-  transaction_type: string; // deposit, withdraw, transfer_match, etc.
+  transaction_type: string;
   country_from: string;
   country_to: string;
   status: "pending" | "completed" | "failed" | "canceled";
@@ -69,8 +68,8 @@ interface Profile {
 }
 
 interface CountryRow {
-  code: string;    // 'PE'
-  name: string;    // 'Peru'
+  code: string;   // 'PE'
+  name: string;   // 'Peru'
   is_active: boolean;
 }
 
@@ -86,9 +85,15 @@ const Dashboard = () => {
     totalVolume: 0,
     userCount: 0,
   });
-
-  // For friendly names
   const [countryMap, setCountryMap] = useState<Record<string, string>>({});
+
+  // Hardcode flags for each region code you expect:
+  const regionFlagMap: Record<string, string> = {
+    US: "🇺🇸",
+    PE: "🇵🇪",
+    MX: "🇲🇽",
+    CO: "🇨🇴",
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -143,6 +148,7 @@ const Dashboard = () => {
           .from<"countries", CountryRow>("countries")
           .select("code,name")
           .eq("is_active", true);
+
         if (!cErr && cData) {
           const map: Record<string, string> = {};
           cData.forEach((c) => {
@@ -160,14 +166,14 @@ const Dashboard = () => {
     fetchData();
   }, [router]);
 
-  // Renders stablecoin balances from all_sc with friendly names
+  // Renders stablecoin balances from all_sc with friendly names, now with flags:
   const renderStablecoinCards = () => {
     if (!wallet?.all_sc) {
       return (
         <StatCard
           title="No Stablecoins"
           value="Get Started"
-          icon={FiDollarSign}
+          iconType={undefined} // no icon
           iconColor="gray.400"
           isEmptyState
           onClick={() => router.push("/deposit")}
@@ -175,12 +181,11 @@ const Dashboard = () => {
       );
     }
 
+    // Filter out zero balances
     const entries = Object.entries(wallet.all_sc)
-      // Only keep those with > 0
       .filter(([_, bal]) => (bal as number) > 0)
       .map(([regionCode, bal]) => {
-        // e.g. regionCode='PE', bal=50
-        const friendlyName = countryMap[regionCode] || regionCode; // e.g. "Peru"
+        const friendlyName = countryMap[regionCode] || regionCode;
         return {
           regionCode,
           friendlyName,
@@ -189,12 +194,11 @@ const Dashboard = () => {
       });
 
     if (entries.length === 0) {
-      // Means every region was 0 or no all_sc
       return (
         <StatCard
           title="No Stablecoins"
           value="Get Started"
-          icon={FiDollarSign}
+          iconType={undefined}
           iconColor="gray.400"
           isEmptyState
           onClick={() => router.push("/dashboard/deposit")}
@@ -203,10 +207,9 @@ const Dashboard = () => {
     }
 
     return entries.map(({ regionCode, friendlyName, balance }) => {
-      // Make sure balance is numeric, not a string
       const numericBalance =
         typeof balance === "string" ? parseFloat(balance) : balance;
-    
+
       return (
         <StatCard
           key={regionCode}
@@ -215,13 +218,14 @@ const Dashboard = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`}
-          icon={FiDollarSign}
+          // Instead of FiDollarSign, we use an emoji:
+          iconEmoji={regionFlagMap[regionCode] || "💲"}
           iconColor="green.500"
         />
       );
     });
-    
-  }
+  };
+
   if (loading) {
     return (
       <Box minH="100vh" bg="gray.900">
@@ -285,26 +289,26 @@ const Dashboard = () => {
               <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4} mb={8}>
                 <StatCard
                   title="Total Transfers"
-                  value={(stats.totalTransfers ?? 0).toLocaleString()}
-                  icon={FiActivity}
+                  value={stats.totalTransfers.toLocaleString()}
+                  iconType={FiActivity}
                   iconColor="blue.400"
                 />
                 <StatCard
                   title="Active Corridors"
-                  value={(stats.activeCorridors ?? 0).toLocaleString()}
-                  icon={FiGlobe}
+                  value={stats.activeCorridors.toLocaleString()}
+                  iconType={FiGlobe}
                   iconColor="purple.400"
                 />
                 <StatCard
                   title="Total Volume"
-                  value={`$${(stats.totalVolume ?? 0).toLocaleString()}`}
-                  icon={FiDollarSign}
+                  value={`$${stats.totalVolume.toLocaleString()}`}
+                  iconType={FiActivity} // or FiDollarSign if you'd like
                   iconColor="green.400"
                 />
                 <StatCard
                   title="User Count"
-                  value={(stats.userCount ?? 0).toLocaleString()}
-                  icon={FiUsers}
+                  value={stats.userCount.toLocaleString()}
+                  iconType={FiUsers}
                   iconColor="orange.400"
                 />
               </SimpleGrid>

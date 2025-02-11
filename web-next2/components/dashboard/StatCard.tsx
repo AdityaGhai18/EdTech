@@ -1,26 +1,41 @@
-import { Box, Card, CardBody, Flex, Stat, StatLabel, StatNumber, StatHelpText, StatArrow, Icon } from '@chakra-ui/react'
-import { IconType } from 'react-icons'
+// StatCard.tsx
+
+import {
+  Box,
+  Card,
+  CardBody,
+  Flex,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  Icon,
+} from "@chakra-ui/react";
+import { IconType } from "react-icons";
 
 interface StatCardProps {
-  title: string
-  value: string | number
-  icon: IconType
-  percentage?: number
-  isIncrease?: boolean
-  iconColor?: string
-  isEmptyState?: boolean
-  onClick?: () => void
+  title: string;
+  value: string | number;
+  iconType?: IconType;   // for Fi icons
+  iconEmoji?: string;    // for emojis/flags
+  percentage?: number;
+  isIncrease?: boolean;
+  iconColor?: string;
+  isEmptyState?: boolean;
+  onClick?: () => void;
 }
 
-export const StatCard = ({ 
-  title, 
-  value, 
-  icon, 
-  percentage, 
-  isIncrease = true, 
+export const StatCard = ({
+  title,
+  value,
+  iconType,
+  iconEmoji,
+  percentage,
+  isIncrease = true,
   iconColor = "purple.500",
   isEmptyState,
-  onClick 
+  onClick,
 }: StatCardProps) => {
   return (
     <Card
@@ -36,15 +51,23 @@ export const StatCard = ({
               <StatNumber>{value}</StatNumber>
               {percentage && !isEmptyState && (
                 <StatHelpText>
-                  <StatArrow type={isIncrease ? 'increase' : 'decrease'} />
+                  <StatArrow type={isIncrease ? "increase" : "decrease"} />
                   {percentage}%
                 </StatHelpText>
               )}
             </Box>
-            <Icon as={icon} boxSize={10} color={iconColor} />
+
+            {/* Conditionally render an emoji or the normal icon */}
+            {iconEmoji ? (
+              <Box fontSize="4xl" lineHeight="1.2" paddingRight="2">
+                {iconEmoji}
+              </Box>
+            ) : iconType ? (
+              <Icon as={iconType} boxSize={10} color={iconColor} />
+            ) : null}
           </Flex>
         </Stat>
       </CardBody>
     </Card>
-  )
-}
+  );
+};
