@@ -29,7 +29,7 @@ export default function Layout(props: { children: React.ReactNode }) {
         <link rel="manifest" href="/static/favicons/manifest.json" />
       </head>
       <body className={`chakra-ui-${colorMode}`}>
-        <ColorModeScript initialColorMode={colorMode} />
+        <ColorModeScript initialColorMode="dark" />
         <Provider>{props.children}</Provider>
       </body>
     </html>

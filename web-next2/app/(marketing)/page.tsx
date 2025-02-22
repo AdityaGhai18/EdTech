@@ -259,9 +259,13 @@ const HighlightsSection = () => {
         name="Daniela G."
         description="International Student, Peru"
         avatar="/static/images/avatar.jpg"
-        gradient={['pink.200', 'purple.500']}
+        gradient={['purple.900', 'purple.700']}
         className="highlight-testimonial"
-        
+        bg="gray.800"
+        _dark={{
+          bg: 'gray.900',
+          borderColor: 'whiteAlpha.100'
+        }}
       >
         “Kipu has saved me time, money, and headaches! My parents send dollars
         from the U.S. and I can instantly withdraw in soles back home. No more

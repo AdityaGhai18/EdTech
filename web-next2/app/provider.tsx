@@ -6,8 +6,15 @@ import { theme } from '#theme'
 
 export function Provider(props: { children: React.ReactNode }) {
   return (
-    <SaasProvider theme={theme}>
-        <AuthProvider>{props.children}</AuthProvider>
+    <SaasProvider 
+      theme={theme}
+      colorModeManager={{
+        get: () => 'dark',
+        set: () => {},
+        type: 'cookie'
+      }}
+    >
+      <AuthProvider>{props.children}</AuthProvider>
     </SaasProvider>
   )
 }
