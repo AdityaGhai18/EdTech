@@ -69,9 +69,8 @@ export const Sidebar = () => {
 
   const menuItems = [
     { icon: FiGrid, label: 'Dashboard', href: '/dashboard' },
-    { icon: FiDollarSign, label: 'Deposit', href: '/dashboard/deposit' },
-    { icon: FiSend, label: 'Transfer', href: '/dashboard/transfer' },
-    { icon: FiDownload, label: 'Withdraw', href: '/dashboard/withdraw' },
+    { icon: FiSend, label: 'Q-Env', href: '/dashboard/q-env' },
+    { icon: FiDownload, label: 'Q-Exp', href: '/dashboard/q-exp' },
     { icon: FiClock, label: 'History', href: '/dashboard/history' },
   ]
 

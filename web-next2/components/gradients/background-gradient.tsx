@@ -27,7 +27,7 @@ export const BackgroundGradient = ({ hideOverlay, ...props }: any) => {
       left="0"
       zIndex="0"
       opacity={useColorModeValue('0.3', '0.5')}
-      height="100vh"
+      height="200vh"
       width="100%"
       overflow="hidden"
       pointerEvents="none"
@@ -41,6 +41,7 @@ export const BackgroundGradient = ({ hideOverlay, ...props }: any) => {
         bottom="0"
         left="0"
         zIndex="1"
+        height="200vh"
       ></Box>
     </Box>
   )

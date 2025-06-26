@@ -6,7 +6,7 @@ import { FiCheck } from 'react-icons/fi'
 import { Logo } from './logo'
 
 const siteConfig = {
-  // Replace this Logo import with Kipu’s actual logo component or image
+  // Replace this Logo import with Edtech's actual logo component or image
   logo: Logo,
 
   // Updated SEO metadata for Kipu
@@ -20,7 +20,7 @@ const siteConfig = {
   termsUrl: '#',
   privacyUrl: '#',
 
-  // Header navigation updated with Kipu’s pages
+  // Header navigation updated with edtechs's pages
   header: {
     links: [
       {
@@ -47,17 +47,16 @@ const siteConfig = {
     ],
   },
 
-  // Footer updated to reflect Kipu’s ownership
   footer: {
     copyright: (
       <>
         Built by{' '}
-        <Link href="mailto:socratesj.osorio at berkeley.edu">Kipu Labs LLC</Link>
+        <Link href="mailto:aditya_ghai@berkeley.edu">Mail us</Link>
       </>
     ),
     links: [
       {
-        href: 'mailto:socratesj.osorio at berkeley.edu',
+        href: 'mailto:aditya_ghai@berkeley.edu',
         label: 'Contact',
       },
       {
@@ -73,34 +72,36 @@ const siteConfig = {
     ],
   },
 
-  // Sign Up section now highlights Kipu’s key benefits
+  // Sign Up section now highlights Kipu's key benefits
   signup: {
-    title: 'Start Sending Money with Kipu',
+    title: 'Join EdTech and Level Up Your Math Skills',
     features: [
+
       {
         icon: FiCheck,
-        title: 'Near-Zero Fees',
+        title: 'Personalized Recommendations',
         description:
-          'Enjoy minimal or zero cost on cross-border transfers with our AI-based liquidity matching.',
+          'Get question suggestions tailored to your strengths, weaknesses, and learning goals.',
       },
       {
         icon: FiCheck,
-        title: 'Stable & Secure',
+        title: 'Detailed Progress Tracking',
         description:
-          'USDU is backed 1:1 by USD reserves, ensuring trust and instant redemption for local fiat.',
+          'See your growth over time, topic-by-topic, and celebrate every milestone you achieve.',
       },
       {
         icon: FiCheck,
-        title: 'Instant Settlement',
+        title: 'QCE-Aligned Content',
         description:
-          'Skip the delays. Access funds in seconds with real-time payouts to local bank accounts.',
+          'Practice with questions designed for QCE Math Methods (Grade 11/12) and prepare with confidence.',
       },
       {
         icon: FiCheck,
-        title: 'Simple & Transparent',
+        title: 'Build up your ELO',
         description:
-          'No hidden fees or complicated procedures. Our interface is designed for quick, seamless transfers.',
+          'Earn points, climb the leaderboard, and make math practice fun and competitive.',
       },
+
     ],
   },
 }

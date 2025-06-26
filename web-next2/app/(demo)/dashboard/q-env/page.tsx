@@ -1,19 +1,18 @@
 "use client";
 
-import { Box, Flex, Heading } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text } from "@chakra-ui/react";
 import { Sidebar } from "#components/dashboard/Sidebar";
-import { PageTransition } from "#components/motion/page-transition";
 import { BackgroundGradient } from "#components/gradients/background-gradient";
 
-export default function HistoryPage() {
+const QEnvPage = () => {
   return (
     <Box minH="100vh" bg="gray.900">
       <Flex h="full">
         <Sidebar />
         <Box
           as="main"
-          ml="240px"
-          w="calc(100% - 240px)"
+          ml={{ base: 0, md: "240px" }}
+          w={{ base: "100%", md: "calc(100% - 240px)" }}
           minH="100vh"
           bg="gray.900"
           position="relative"
@@ -27,15 +26,12 @@ export default function HistoryPage() {
             right="0"
             bottom="0"
           />
-          <PageTransition>
-            <Box maxW="container.xl" mx="auto" px={8} py={8}>
-              <Heading size="lg" mb={4} color="white">
-                Question History
-              </Heading>
-            </Box>
-          </PageTransition>
+          <Heading color="white" mb={6} position="relative" zIndex={1}>Q-Env</Heading>
+          <Text color="gray.300" position="relative" zIndex={1}>This is the Q-Env page. Content coming soon!</Text>
         </Box>
       </Flex>
     </Box>
   );
-}
+};
+
+export default QEnvPage; 

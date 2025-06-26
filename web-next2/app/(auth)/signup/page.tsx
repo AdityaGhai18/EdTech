@@ -63,14 +63,13 @@ const Signup = () => {
   const toast = useToast()
 
   // Form state
+  const [username, setUsername] = useState('')
+  const [grade, setGrade] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [country, setCountry] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [referralCode, setReferralCode] = useState('') // optional
 
   // UI/Loading state
   const [loading, setLoading] = useState(false)
@@ -117,9 +116,9 @@ const Signup = () => {
       return
     }
 
-    if (!country) {
+    if (!username) {
       toast({
-        title: 'Country is required',
+        title: 'Username is required',
         status: 'error',
         duration: 4000,
         isClosable: true,
@@ -127,9 +126,9 @@ const Signup = () => {
       return
     }
 
-    if (!phoneNumber) {
+    if (!grade) {
       toast({
-        title: 'Phone number is required',
+        title: 'Grade/Year level is required',
         status: 'error',
         duration: 4000,
         isClosable: true,
@@ -147,45 +146,33 @@ const Signup = () => {
           data: {
             first_name: firstName,
             last_name: lastName,
+            username,
+            grade,
           },
         },
       })
 
       if (signUpError) throw signUpError
 
-      if (authData.user) {
-        // Insert row into 'profiles'
+      // Fetch the current authenticated user (important for RLS)
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      const user = userData.user;
+
+      if (user) {
+        // Insert row into 'profiles' using the authenticated user's ID
         const { error: profileError } = await supabase.from('profiles').insert({
-          id: authData.user.id,
+          id: user.id,
           first_name: firstName,
           last_name: lastName,
-          phone_number: phoneNumber,
-          country,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          username,
+          grade,
         })
         if (profileError) throw profileError
 
-        // Create a default cryptowallet
-        const { error: walletError } = await supabase.from('cryptowallets').insert({
-          user_id: authData.user.id,
-          all_sc: {}, // empty object if you plan to support multiple stablecoins
-          country,    // store same country or user's region
-        })
-        if (walletError) throw walletError
-
-        // (Optional) Store referral code if it’s part of your project logic
-        if (referralCode) {
-          // Example of how you might store it somewhere:
-          // await supabase.from('referrals').insert({
-          //   user_id: authData.user.id,
-          //   code: referralCode,
-          // })
-        }
-
         toast({
           title: 'Account created successfully!',
-          description: 'Please check your email to verify your account.',
+          description: 'You are now signed up and logged in.',
           status: 'success',
           duration: 5000,
           isClosable: true,
@@ -272,27 +259,24 @@ const Signup = () => {
                     />
                   </FormControl>
                   <FormControl isRequired>
-                    <FormLabel>Country</FormLabel>
-                    <Select
-                      placeholder="Select country"
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                    >
-                      <option value="US">United States</option>
-                      <option value="PE">Peru</option>
-                      <option value="MX">Mexico</option>
-                      <option value="BR">Brazil</option>
-                      {/* Add more as needed */}
-                    </Select>
+                    <FormLabel>Username</FormLabel>
+                    <Input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
                   </FormControl>
                   <FormControl isRequired>
-                    <FormLabel>Phone Number</FormLabel>
-                    <Input
-                      type="tel"
-                      placeholder="+1 555 123 4567"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                    />
+                    <FormLabel>Grade / Year Level</FormLabel>
+                    <Select
+                      placeholder="Select grade/year"
+                      value={grade}
+                      onChange={(e) => setGrade(e.target.value)}
+                    >
+                      <option value="11">Grade 11</option>
+                      <option value="12">Grade 12</option>
+                      {/* can be extended if we go for more grades later on */}
+                    </Select>
                   </FormControl>
                   <FormControl isRequired>
                     <FormLabel>Email</FormLabel>
@@ -329,15 +313,6 @@ const Signup = () => {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                  </FormControl>
-                  {/* Optional Referral Code */}
-                  <FormControl>
-                    <FormLabel>Referral Code (Optional)</FormLabel>
-                    <Input
-                      type="text"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value)}
                     />
                   </FormControl>
 
@@ -390,10 +365,6 @@ const Signup = () => {
                     <Link href={siteConfig.privacyUrl} color="primary.500">
                       Privacy Policy
                     </Link>
-                  </Text>
-
-                  <Text fontSize="sm" color="gray.500" mt="2" textAlign="center">
-                    You may be required to complete further KYC steps for higher transaction limits.
                   </Text>
                 </Stack>
               </form>

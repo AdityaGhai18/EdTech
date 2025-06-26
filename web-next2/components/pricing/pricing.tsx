@@ -39,7 +39,6 @@ export const Pricing: React.FC<PricingProps> = (props) => {
 
   return (
     <Section id="pricing" pos="relative" {...rest}>
-      <BackgroundGradient height="100%" />
       <Box zIndex="2" pos="relative">
         <SectionTitle title={title} description={description}></SectionTitle>
 
