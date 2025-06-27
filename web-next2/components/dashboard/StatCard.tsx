@@ -1,40 +1,19 @@
 // StatCard.tsx
 
-import {
-  Box,
-  Card,
-  CardBody,
-  Flex,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  StatArrow,
-  Icon,
-} from "@chakra-ui/react";
-import { IconType } from "react-icons";
+import { Card, CardBody } from "@chakra-ui/react";
+import React from "react";
 
 interface StatCardProps {
-  title: string;
-  value: string | number;
-  iconType?: IconType;   // for Fi icons
-  iconEmoji?: string;    // for emojis/flags
-  percentage?: number;
-  isIncrease?: boolean;
-  iconColor?: string;
-  isEmptyState?: boolean;
+  value: React.ReactNode;
+  h?: string | number;
+  w?: string | number;
   onClick?: () => void;
 }
 
 export const StatCard = ({
-  title,
   value,
-  iconType,
-  iconEmoji,
-  percentage,
-  isIncrease = true,
-  iconColor = "purple.500",
-  isEmptyState,
+  h, 
+  w,
   onClick,
 }: StatCardProps) => {
   return (
@@ -42,31 +21,12 @@ export const StatCard = ({
       cursor={onClick ? "pointer" : "default"}
       onClick={onClick}
       _hover={onClick ? { transform: "translateY(-2px)", transition: "all 0.2s" } : {}}
+      h={h} 
+      w={w}
+      position="relative"
     >
-      <CardBody>
-        <Stat>
-          <Flex justify="space-between" align="center">
-            <Box>
-              <StatLabel>{title}</StatLabel>
-              <StatNumber>{value}</StatNumber>
-              {percentage && !isEmptyState && (
-                <StatHelpText>
-                  <StatArrow type={isIncrease ? "increase" : "decrease"} />
-                  {percentage}%
-                </StatHelpText>
-              )}
-            </Box>
-
-            {/* Conditionally render an emoji or the normal icon */}
-            {iconEmoji ? (
-              <Box fontSize="4xl" lineHeight="1.2" paddingRight="2">
-                {iconEmoji}
-              </Box>
-            ) : iconType ? (
-              <Icon as={iconType} boxSize={10} color={iconColor} />
-            ) : null}
-          </Flex>
-        </Stat>
+      <CardBody h="100%" w="100%" position="relative" p={0}>
+        {value}
       </CardBody>
     </Card>
   );

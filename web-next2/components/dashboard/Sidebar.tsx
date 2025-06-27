@@ -16,6 +16,7 @@ import {
   FiClock,
   FiLogOut,
   FiUser,
+  FiBookOpen
 } from 'react-icons/fi'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -69,7 +70,7 @@ export const Sidebar = () => {
 
   const menuItems = [
     { icon: FiGrid, label: 'Dashboard', href: '/dashboard' },
-    { icon: FiSend, label: 'Q-Env', href: '/dashboard/q-env' },
+    { icon: FiBookOpen, label: 'Q-Env', href: '/dashboard/q-env' },
     { icon: FiDownload, label: 'Q-Exp', href: '/dashboard/q-exp' },
     { icon: FiClock, label: 'History', href: '/dashboard/history' },
   ]
