@@ -61,8 +61,6 @@ import faq from '#data/faq'
 import pricing from '#data/pricing'
 import testimonials from '#data/testimonials'
 
-// If using the app router in Next.js 13, you can export metadata normally:
-// export const metadata: Metadata = { ... }
 
 const Home: NextPage = () => {
   return (

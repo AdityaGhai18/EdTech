@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "utils/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { Spinner } from "@chakra-ui/react";
+import ProtectedRoute from "#components/auth/protected-route";
 
 
 interface Question {
@@ -246,177 +247,179 @@ if (loading || !currentQuestion || minLoader) {
 
 
   return (
-    <Box minH="100vh" bg="gray.900">
-      <Flex h="full">
-        <Sidebar />
-        <Box
-          as="main"
-          ml={{ base: 0, md: "240px" }}
-          w={{ base: "100%", md: "calc(100% - 240px)" }}
-          minH="100vh"
-          bg="gray.900"
-          position="relative"
-        >
-          <BackgroundGradient
-            zIndex="0"
-            width="full"
-            position="absolute"
-            top="0"
-            left="0"
-            right="0"
-            bottom="0"
-          />
-          <PageTransition>
-            <Box maxW="container.xl" mx="auto" px={8} py={8}>
-              <Heading size="lg" mb={8} color="white" textAlign="center">
-                Question Environment
-              </Heading>
-              <Box maxW="container.lg" mx="auto" mb={8} h={{ base: "50vh", md: "60vh", lg: "70vh" }} px={4} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
-                <StatCard
-                  h="100%"
-                  w="100%"
-                  value={
-                    <Box position="relative" h="100%" w="100%">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={showResult ? feedback : currentQuestion?.id || "question"}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.4, ease: "easeInOut" }}
-                          style={{ width: "100%", height: "100%" }}
-                        >
-                          <AnimatePresence>
-                            {showResult && feedback === 'wrong' ? (
-                              <motion.div
-                                key="wrong"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.3 }}
-                                style={{ width: "100%", height: "100%" }}
-                              >
-                                <Box position="absolute" top={0} left={0} w="100%" h="100%" zIndex={10} display="flex" flexDirection="column" alignItems="center" justifyContent="flex-start" p={8} style={{ animation: 'fadeIn 0.5s' }}>
-                                  <Text fontSize="3xl" fontWeight="extrabold" color="red.400" mt={4} mb={4}>
-                                    Wrong
-                                  </Text>
-                                  <Text fontSize="xl" color="red.300" fontWeight="bold" mb={2}>
-                                    ELO: {elo} ({eloChange})
-                                  </Text>
-                                  <Box bg="whiteAlpha.100" borderRadius="md" p={6} mt={4} mb={8} w="100%" maxW="600px">
-                                    <Text color="white" fontSize="lg" fontWeight="bold" mb={2}>Explanation:</Text>
-                                    <Text color="white">{workingOut}</Text>
+    <ProtectedRoute>
+      <Box minH="100vh" bg="gray.900">
+        <Flex h="full">
+          <Sidebar />
+          <Box
+            as="main"
+            ml={{ base: 0, md: "240px" }}
+            w={{ base: "100%", md: "calc(100% - 240px)" }}
+            minH="100vh"
+            bg="gray.900"
+            position="relative"
+          >
+            <BackgroundGradient
+              zIndex="0"
+              width="full"
+              position="absolute"
+              top="0"
+              left="0"
+              right="0"
+              bottom="0"
+            />
+            <PageTransition>
+              <Box maxW="container.xl" mx="auto" px={8} py={8}>
+                <Heading size="lg" mb={8} color="white" textAlign="center">
+                  Question Environment
+                </Heading>
+                <Box maxW="container.lg" mx="auto" mb={8} h={{ base: "50vh", md: "60vh", lg: "70vh" }} px={4} display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+                  <StatCard
+                    h="100%"
+                    w="100%"
+                    value={
+                      <Box position="relative" h="100%" w="100%">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={showResult ? feedback : currentQuestion?.id || "question"}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.4, ease: "easeInOut" }}
+                            style={{ width: "100%", height: "100%" }}
+                          >
+                            <AnimatePresence>
+                              {showResult && feedback === 'wrong' ? (
+                                <motion.div
+                                  key="wrong"
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.9 }}
+                                  transition={{ duration: 0.3 }}
+                                  style={{ width: "100%", height: "100%" }}
+                                >
+                                  <Box position="absolute" top={0} left={0} w="100%" h="100%" zIndex={10} display="flex" flexDirection="column" alignItems="center" justifyContent="flex-start" p={8} style={{ animation: 'fadeIn 0.5s' }}>
+                                    <Text fontSize="3xl" fontWeight="extrabold" color="red.400" mt={4} mb={4}>
+                                      Wrong
+                                    </Text>
+                                    <Text fontSize="xl" color="red.300" fontWeight="bold" mb={2}>
+                                      ELO: {elo} ({eloChange})
+                                    </Text>
+                                    <Box bg="whiteAlpha.100" borderRadius="md" p={6} mt={4} mb={8} w="100%" maxW="600px">
+                                      <Text color="white" fontSize="lg" fontWeight="bold" mb={2}>Explanation:</Text>
+                                      <Text color="white">{workingOut}</Text>
+                                    </Box>
+                                    <Button colorScheme="purple" size="lg" mt={8} onClick={handleNext}>
+                                      Next Question
+                                    </Button>
                                   </Box>
-                                  <Button colorScheme="purple" size="lg" mt={8} onClick={handleNext}>
-                                    Next Question
-                                  </Button>
-                                </Box>
-                              </motion.div>
-                            ) : showResult && feedback === 'correct' ? (
-                              <motion.div
-                                key="correct"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.3 }}
-                                style={{ width: "100%", height: "100%" }}
-                              >
-                                <Box position="absolute" top={0} left={0} w="100%" h="100%" zIndex={10} display="flex" flexDirection="column" alignItems="center" justifyContent="flex-start" p={8} style={{ animation: 'fadeIn 0.5s' }}>
-                                  <Text fontSize="3xl" fontWeight="extrabold" color="green.300" mt={4} mb={4}>
-                                    Correct
-                                  </Text>
-                                  <Text fontSize="xl" color="green.300" fontWeight="bold" mb={2}>
-                                    ELO: {elo} ({eloChange > 0 ? `+${eloChange}` : eloChange})
-                                  </Text>
-                                  <Box bg="whiteAlpha.100" borderRadius="md" p={6} mt={4} mb={8} w="100%" maxW="600px">
-                                    <Text color="white" fontSize="lg" fontWeight="bold" mb={2}>Explanation:</Text>
-                                    <Text color="white">{workingOut}</Text>
+                                </motion.div>
+                              ) : showResult && feedback === 'correct' ? (
+                                <motion.div
+                                  key="correct"
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.9 }}
+                                  transition={{ duration: 0.3 }}
+                                  style={{ width: "100%", height: "100%" }}
+                                >
+                                  <Box position="absolute" top={0} left={0} w="100%" h="100%" zIndex={10} display="flex" flexDirection="column" alignItems="center" justifyContent="flex-start" p={8} style={{ animation: 'fadeIn 0.5s' }}>
+                                    <Text fontSize="3xl" fontWeight="extrabold" color="green.300" mt={4} mb={4}>
+                                      Correct
+                                    </Text>
+                                    <Text fontSize="xl" color="green.300" fontWeight="bold" mb={2}>
+                                      ELO: {elo} ({eloChange > 0 ? `+${eloChange}` : eloChange})
+                                    </Text>
+                                    <Box bg="whiteAlpha.100" borderRadius="md" p={6} mt={4} mb={8} w="100%" maxW="600px">
+                                      <Text color="white" fontSize="lg" fontWeight="bold" mb={2}>Explanation:</Text>
+                                      <Text color="white">{workingOut}</Text>
+                                    </Box>
+                                    <Button colorScheme="purple" size="lg" mt={8} onClick={handleNext}>
+                                      Next Question
+                                    </Button>
                                   </Box>
-                                  <Button colorScheme="purple" size="lg" mt={8} onClick={handleNext}>
-                                    Next Question
-                                  </Button>
-                                </Box>
-                              </motion.div>
-                            ) : (
-                              <motion.div
-                                key="question"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.4, ease: "easeInOut" }}
-                                style={{ width: "100%", height: "100%" }}
-                              >
-                                {/* Question number at top left */}
-                                <Box position="absolute" top={10} left={8} zIndex={1}>
-                                  <Text fontSize="3xl" color="white" fontWeight="extrabold">Question {questionNumber}</Text>
-                                </Box>
-                                
-                                {/* Timer and ELO at top right */}
-                                <Box position="absolute" top={9} right={8} display="flex" flexDirection="column" alignItems="flex-end" zIndex={1} mt={2}>
-                                  <Text color="white" fontSize="2xl" fontWeight="bold">{formatTime(timer)}</Text>
-                                  <VStack spacing={0} align="flex-end" mt={1}>
-                                    <Text color="gray.400" fontSize="sm">ELO</Text>
-                                    <Text color="white" fontSize="lg" fontWeight="bold">{elo}</Text>
-                                  </VStack>
-                                </Box>
-
-                                {/* Question content in center */}
-                                {currentQuestion && (
-                                  <Box position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" zIndex={1} w="100%" maxW="800px" px={8}>
-                                    <VStack spacing={6} align="center">
-                                      <Text color="white" fontSize="2xl" fontWeight="bold" textAlign="center">
-                                        {currentQuestion.question_text}
-                                      </Text>
-                                      <Text color="gray.300" fontSize="md" textAlign="center">
-                                        Topics: {Array.isArray(currentQuestion.topics) ? currentQuestion.topics.join(', ') : ''}
-                                      </Text>
+                                </motion.div>
+                              ) : (
+                                <motion.div
+                                  key="question"
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -20 }}
+                                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                                  style={{ width: "100%", height: "100%" }}
+                                >
+                                  {/* Question number at top left */}
+                                  <Box position="absolute" top={8} left={8} zIndex={1}>
+                                    <Text fontSize="3xl" color="white" fontWeight="extrabold">Question {questionNumber}</Text>
+                                  </Box>
+                                  
+                                  {/* Timer and ELO at top right */}
+                                  <Box position="absolute" top={6} right={8} display="flex" flexDirection="column" alignItems="flex-end" zIndex={1} mt={2}>
+                                    <Text color="white" fontSize="2xl" fontWeight="bold">{formatTime(timer)}</Text>
+                                    <VStack spacing={0} align="flex-end" mt={1}>
+                                      <Text color="gray.400" fontSize="sm">ELO</Text>
+                                      <Text color="white" fontSize="lg" fontWeight="bold">{elo}</Text>
                                     </VStack>
                                   </Box>
-                                )}
 
-                                {/* Input and buttons at bottom left */}
-                                <Box position="absolute" left={4} bottom={4} zIndex={1} w="calc(100% - 32px)">
-                                  <VStack align="center" spacing={2} w="100%">
-                                    <Input
-                                      placeholder="Type your answer..."
-                                      value={answer}
-                                      onChange={e => setAnswer(e.target.value)}
-                                      size="md"
-                                      bg="whiteAlpha.100"
-                                      color="white"
-                                      maxW="500px"
-                                      w="100%"
-                                      textAlign="center"
-                                      onKeyPress={(e) => {
-                                        if (e.key === 'Enter') {
-                                          handleSubmit();
-                                        }
-                                      }}
-                                    />
-                                    <HStack spacing={6} justify="center" w="100%">
-                                      <Button colorScheme="purple" size="md" onClick={handleSubmit}>
-                                        Submit
-                                      </Button>
-                                      <Button colorScheme="gray" size="md" onClick={handleNext}>
-                                        I don't know
-                                      </Button>
-                                    </HStack>
-                                  </VStack>
-                                </Box>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </motion.div>
-                      </AnimatePresence>
-                    </Box>
-                  }
-                />
+                                  {/* Question content in center */}
+                                  {currentQuestion && (
+                                    <Box position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" zIndex={1} w="100%" maxW="800px" px={8}>
+                                      <VStack spacing={6} align="center">
+                                        <Text color="white" fontSize="2xl" fontWeight="bold" textAlign="center">
+                                          {currentQuestion.question}
+                                        </Text>
+                                        <Text color="gray.300" fontSize="md" textAlign="center">
+                                          Topics: {currentQuestion.topic}
+                                        </Text>
+                                      </VStack>
+                                    </Box>
+                                  )}
+
+                                  {/* Input and buttons at bottom left */}
+                                  <Box position="absolute" left={4} bottom={4} zIndex={1} w="calc(100% - 32px)">
+                                    <VStack align="center" spacing={2} w="100%">
+                                      <Input
+                                        placeholder="Type your answer..."
+                                        value={answer}
+                                        onChange={e => setAnswer(e.target.value)}
+                                        size="md"
+                                        bg="whiteAlpha.100"
+                                        color="white"
+                                        maxW="500px"
+                                        w="100%"
+                                        textAlign="center"
+                                        onKeyPress={(e) => {
+                                          if (e.key === 'Enter') {
+                                            handleSubmit();
+                                          }
+                                        }}
+                                      />
+                                      <HStack spacing={6} justify="center" w="100%">
+                                        <Button colorScheme="purple" size="md" onClick={handleSubmit}>
+                                          Submit
+                                        </Button>
+                                        <Button colorScheme="gray" size="md" onClick={handleNext}>
+                                          I don't know
+                                        </Button>
+                                      </HStack>
+                                    </VStack>
+                                  </Box>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.div>
+                        </AnimatePresence>
+                      </Box>
+                    }
+                  />
+                </Box>
               </Box>
-            </Box>
-          </PageTransition>
-        </Box>
-      </Flex>
-    </Box>
+            </PageTransition>
+          </Box>
+        </Flex>
+      </Box>
+    </ProtectedRoute>
   );
 };
 

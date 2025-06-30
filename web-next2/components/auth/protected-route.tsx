@@ -9,6 +9,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
+  //checks if the user has a valid session and then only renders children for that page if authenticated
+  //so basically it guards any protected pages from unauth access
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession()

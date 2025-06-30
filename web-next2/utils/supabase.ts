@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
+//supabase client is used to interact with the supabase db
+//given to us from supabase to interact with the db
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
