@@ -25,6 +25,7 @@ import {
   FiRefreshCw,
   FiFileText,
   FiUser,
+  FiBookOpen,
 } from "react-icons/fi";
 import { supabase } from "utils/supabase";
 import ProtectedRoute from "#components/auth/protected-route";
@@ -55,9 +56,9 @@ interface CryptoWallet {
 }
 
 interface DashboardStats {
-  totalTransfers: number;
-  activeCorridors: number;
-  totalVolume: number;
+  totalQuestions: number;
+  activeTopics: number;
+  totalScore: number;
   userCount: number;
 }
 
@@ -80,9 +81,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
-    totalTransfers: 0,
-    activeCorridors: 0,
-    totalVolume: 0,
+    totalQuestions: 0,
+    activeTopics: 0,
+    totalScore: 0,
     userCount: 0,
   });
   const [countryMap, setCountryMap] = useState<Record<string, string>>({});
@@ -166,17 +167,22 @@ const Dashboard = () => {
     fetchData();
   }, [router]);
 
-  // Renders stablecoin balances from all_sc with friendly names, now with flags:
-  const renderStablecoinCards = () => {
+  // Renders question progress cards:
+  const renderProgressCards = () => {
     if (!wallet?.all_sc) {
       return (
         <StatCard
-          title="No Stablecoins"
-          value="Get Started"
-          iconType={undefined} // no icon
-          iconColor="gray.400"
-          isEmptyState
-          onClick={() => router.push("/deposit")}
+          value={
+            <Box textAlign="center" p={6}>
+              <Text fontSize="lg" fontWeight="bold" color="gray.400" mb={2}>
+                No Questions Completed
+              </Text>
+              <Text fontSize="md" color="gray.500">
+                Start Learning
+              </Text>
+            </Box>
+          }
+          onClick={() => router.push("/dashboard/q-env")}
         />
       );
     }
@@ -196,12 +202,17 @@ const Dashboard = () => {
     if (entries.length === 0) {
       return (
         <StatCard
-          title="No Stablecoins"
-          value="Get Started"
-          iconType={undefined}
-          iconColor="gray.400"
-          isEmptyState
-          onClick={() => router.push("/dashboard/deposit")}
+          value={
+            <Box textAlign="center" p={6}>
+              <Text fontSize="lg" fontWeight="bold" color="gray.400" mb={2}>
+                No Questions Completed
+              </Text>
+              <Text fontSize="md" color="gray.500">
+                Start Learning
+              </Text>
+            </Box>
+          }
+          onClick={() => router.push("/dashboard/q-env")}
         />
       );
     }
@@ -213,14 +224,16 @@ const Dashboard = () => {
       return (
         <StatCard
           key={regionCode}
-          title={`USDU (${friendlyName})`}
-          value={`$${numericBalance.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`}
-          // Instead of FiDollarSign, we use an emoji:
-          iconEmoji={regionFlagMap[regionCode] || "💲"}
-          iconColor="green.500"
+          value={
+            <Box textAlign="center" p={6}>
+              <Text fontSize="2xl" fontWeight="bold" color="white" mb={2}>
+                {regionFlagMap[regionCode] || "📚"} {friendlyName}
+              </Text>
+              <Text fontSize="lg" color="green.300">
+                {numericBalance.toLocaleString()} Questions
+              </Text>
+            </Box>
+          }
         />
       );
     });
@@ -286,66 +299,42 @@ const Dashboard = () => {
               )}
 
               {/* Quick Platform Stats */}
-              <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4} mb={8}>
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={8}>
                 <StatCard
-                  title="Total Transfers"
-                  value={stats.totalTransfers.toLocaleString()}
-                  iconType={FiActivity}
-                  iconColor="blue.400"
+                  value={
+                    <Box textAlign="center" p={6}>
+                      <Text fontSize="2xl" fontWeight="bold" color="blue.400" mb={2}>
+                        {stats.totalQuestions.toLocaleString()}
+                      </Text>
+                      <Text fontSize="md" color="gray.300">
+                        Questions Answered
+                      </Text>
+                    </Box>
+                  }
                 />
                 <StatCard
-                  title="Active Corridors"
-                  value={stats.activeCorridors.toLocaleString()}
-                  iconType={FiGlobe}
-                  iconColor="purple.400"
+                  value={
+                    <Box textAlign="center" p={6}>
+                      <Text fontSize="2xl" fontWeight="bold" color="purple.400" mb={2}>
+                        {stats.activeTopics.toLocaleString()}
+                      </Text>
+                      <Text fontSize="md" color="gray.300">
+                        Topics Covered
+                      </Text>
+                    </Box>
+                  }
                 />
-               {/*  <StatCard
-                  title="Total Volume"
-                  value={`$${stats.totalVolume.toLocaleString()}`}
-                  iconType={FiActivity} // or FiDollarSign if you'd like
-                  iconColor="green.400"
-                />
-                <StatCard
-                  title="User Count"
-                  value={stats.userCount.toLocaleString()}
-                  iconType={FiUsers}
-                  iconColor="orange.400"
-                /> */}
               </SimpleGrid>
 
               {/* Quick Actions */}
               <HStack spacing={4} mb={8} wrap="wrap">
                 <Button
-                  leftIcon={<FiArrowDownCircle />}
+                  leftIcon={<FiBookOpen />}
                   colorScheme="purple"
                   variant="solid"
-                  onClick={() => router.push("/dashboard/deposit")}
+                  onClick={() => router.push("/dashboard/q-env")}
                 >
-                  Deposit
-                </Button>
-                <Button
-                  leftIcon={<FiArrowUpCircle />}
-                  colorScheme="purple"
-                  variant="solid"
-                  onClick={() => router.push("/dashboard/transfer")}
-                >
-                  Transfer
-                </Button>
-                <Button
-                  leftIcon={<FiRefreshCw />}
-                  colorScheme="purple"
-                  variant="solid"
-                  onClick={() => router.push("/dashboard/transfer-match")}
-                >
-                  Match Center
-                </Button>
-                <Button
-                  leftIcon={<FiArrowDownCircle />}
-                  colorScheme="purple"
-                  variant="solid"
-                  onClick={() => router.push("/dashboard/withdraw")}
-                >
-                  Withdraw
+                  Start Questions
                 </Button>
                 <Button
                   leftIcon={<FiFileText />}
@@ -365,17 +354,17 @@ const Dashboard = () => {
                 />
               </HStack>
 
-              {/* Stablecoin Balances */}
+              {/* Question Progress */}
               <Heading size="md" color="white" mb={4}>
-                Your Balances
+                Your Progress
               </Heading>
               <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={8}>
-                {renderStablecoinCards()}
+                {renderProgressCards()}
               </SimpleGrid>
 
-              {/* Recent Transactions */}
+              {/* Recent Activity */}
               <Heading size="md" color="white" mb={4}>
-                Recent Transactions
+                Recent Activity
               </Heading>
               <TransactionList transactions={transactions} />
             </Box>

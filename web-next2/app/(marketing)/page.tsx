@@ -64,7 +64,7 @@ import testimonials from '#data/testimonials'
 
 const Home: NextPage = () => {
   return (
-    <Box className="kipu-home-page">
+    <Box className="edTech-home-page">
       <HeroSection />
       <HighlightsSection />
       <FeaturesSection />
