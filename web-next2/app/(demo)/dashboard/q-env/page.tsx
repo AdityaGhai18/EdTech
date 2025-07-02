@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Flex, Heading, Text, SimpleGrid, Input, Button, VStack, HStack, Center } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text, SimpleGrid, Input, Button, VStack, HStack, Center, IconButton, Collapse } from "@chakra-ui/react";
 import { Sidebar } from "#components/dashboard/Sidebar";
 import { BackgroundGradient } from "#components/gradients/background-gradient";
 import { StatCard } from "#components/dashboard/StatCard";
@@ -11,17 +11,29 @@ import { supabase } from "utils/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { Spinner } from "@chakra-ui/react";
 import ProtectedRoute from "#components/auth/protected-route";
+import { FaKeyboard } from "react-icons/fa";
+import { MathKeyboard } from "#components/dashboard/MathKeyboard";
+import dynamic from "next/dynamic";
 
 
 interface Question {
   id: string;
-  question: string;
+  question_text: string;
   answer: string;
   elo: number;
-  topic: string;
+  topics: string;
   grade: number;
   explanation: string;
 }
+
+// Dynamically import MathLive's MathfieldElement for client-side only
+const MathfieldElement = dynamic(
+  async () => {
+    const mod = await import("mathlive");
+    return mod.MathfieldElement;
+  },
+  { ssr: false }
+);
 
 const QEnvPage = () => {
   // State for current question and user data
@@ -37,6 +49,8 @@ const QEnvPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [questionNumber, setQuestionNumber] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Fetch user and ELO from DB on mount
   useEffect(() => {
@@ -112,6 +126,21 @@ const QEnvPage = () => {
     return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
   };
 
+  // Insert LaTeX at cursor position in input when mathkeyboard is used
+  const handleInsertLatex = (latex: string) => {
+    if (!inputRef.current) return;
+    const input = inputRef.current;
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const newValue = answer.slice(0, start) + latex + answer.slice(end);
+    setAnswer(newValue);
+    // Move cursor after inserted latex
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(start + latex.length, start + latex.length);
+    }, 0);
+  };
+
   // Submit handler
   const handleSubmit = async () => {
     if (!currentQuestion) return;
@@ -181,70 +210,62 @@ const QEnvPage = () => {
     fetchQuestion(); // Fetch new question
   };
 
-  // if (loading) {
-  //   return (
-  //     <Box minH="100vh" bg="gray.900">
-  //       <Flex h="full">
-  //         <Sidebar />
-  //         <Center ml="240px" w="calc(100% - 240px)" bg="gray.900">
-  //           <Text color="white" fontSize="lg">Loading question...</Text>
-  //         </Center>
-  //       </Flex>
-  //     </Box>
-  //   );
-  // }
-const [minLoader, setMinLoader] = useState(true);
+  // Ensure MathLive is loaded on the client
+  useEffect(() => {
+    import('mathlive');
+  }, []);
 
-useEffect(() => {
-  setMinLoader(true);
-  const t = setTimeout(() => setMinLoader(false), 1000); // 2 seconds minimum
-  return () => clearTimeout(t);
-}, []);
+  const [minLoader, setMinLoader] = useState(true);
 
-if (loading || !currentQuestion || minLoader) {
-  return (
-    <Box minH="100vh" bg="gray.900">
-      <Flex h="full">
-        <Sidebar />
-        <Box
-          as="main"
-          ml={{ base: 0, md: "240px" }}
-          w={{ base: "100%", md: "calc(100% - 240px)" }}
-          minH="100vh"
-          bg="gray.900"
-          position="relative"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <AnimatePresence>
-            <motion.div
-              key="loader"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-            >
-              <Spinner
-                thickness="5px"
-                speed="0.7s"
-                emptyColor="gray.700"
-                color="purple.400"
-                size="xl"
-                mb={6}
-              />
-              <Text color="white" fontSize="xl" fontWeight="bold" letterSpacing="wide">
-                Loading questions...
-              </Text>
-            </motion.div>
-          </AnimatePresence>
-        </Box>
-      </Flex>
-    </Box>
-  );
-}
+  useEffect(() => {
+    setMinLoader(true);
+    const t = setTimeout(() => setMinLoader(false), 1000); // 2 seconds minimum
+    return () => clearTimeout(t);
+  }, []);
 
+  if (loading || !currentQuestion || minLoader) {
+    return (
+      <Box minH="100vh" bg="gray.900">
+        <Flex h="full">
+          <Sidebar />
+          <Box
+            as="main"
+            ml={{ base: 0, md: "240px" }}
+            w={{ base: "100%", md: "calc(100% - 240px)" }}
+            minH="100vh"
+            bg="gray.900"
+            position="relative"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <AnimatePresence>
+              <motion.div
+                key="loader"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+              >
+                <Spinner
+                  thickness="5px"
+                  speed="0.7s"
+                  emptyColor="gray.700"
+                  color="purple.400"
+                  size="xl"
+                  mb={6}
+                />
+                <Text color="white" fontSize="xl" fontWeight="bold" letterSpacing="wide">
+                  Loading questions...
+                </Text>
+              </motion.div>
+            </AnimatePresence>
+          </Box>
+        </Flex>
+      </Box>
+    );
+  }
 
   return (
     <ProtectedRoute>
@@ -367,10 +388,10 @@ if (loading || !currentQuestion || minLoader) {
                                     <Box position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" zIndex={1} w="100%" maxW="800px" px={8}>
                                       <VStack spacing={6} align="center">
                                         <Text color="white" fontSize="2xl" fontWeight="bold" textAlign="center">
-                                          {currentQuestion.question}
+                                          {currentQuestion.question_text}
                                         </Text>
                                         <Text color="gray.300" fontSize="md" textAlign="center">
-                                          Topics: {currentQuestion.topic}
+                                          Topics: {Array.isArray(currentQuestion.topics) ? currentQuestion.topics.join(', ') : currentQuestion.topics}
                                         </Text>
                                       </VStack>
                                     </Box>
@@ -379,22 +400,32 @@ if (loading || !currentQuestion || minLoader) {
                                   {/* Input and buttons at bottom left */}
                                   <Box position="absolute" left={4} bottom={4} zIndex={1} w="calc(100% - 32px)">
                                     <VStack align="center" spacing={2} w="100%">
-                                      <Input
-                                        placeholder="Type your answer..."
-                                        value={answer}
-                                        onChange={e => setAnswer(e.target.value)}
-                                        size="md"
-                                        bg="whiteAlpha.100"
-                                        color="white"
-                                        maxW="500px"
-                                        w="100%"
-                                        textAlign="center"
-                                        onKeyPress={(e) => {
-                                          if (e.key === 'Enter') {
-                                            handleSubmit();
-                                          }
-                                        }}
+                                      {/* Math Keyboard */}
+                                      <MathKeyboard
+                                        isOpen={showKeyboard}
+                                        onInsert={handleInsertLatex}
+                                        onClose={() => setShowKeyboard(false)}
                                       />
+                                      <HStack w="100%" justify="center">
+                                        {/* MathLive math-field for answer input */}
+                                        <Box maxW="500px" w="100%" bg="whiteAlpha.100" borderRadius="md" px={2} py={1}>
+                                          <math-field
+                                            value={answer}
+                                            onInput={evt => setAnswer(evt.target.value)}
+                                            style={{ width: "100%", background: "transparent", color: "white", fontSize: "1.25rem", border: "none" }}
+                                            virtualkeyboardmode="manual"
+                                            ref={inputRef}
+                                          />
+                                        </Box>
+                                        <IconButton
+                                          aria-label="Show math keyboard"
+                                          icon={<FaKeyboard />}
+                                          colorScheme={showKeyboard ? "purple" : "gray"}
+                                          variant="outline"
+                                          onClick={() => setShowKeyboard((v) => !v)}
+                                          ml={2}
+                                        />
+                                      </HStack>
                                       <HStack spacing={6} justify="center" w="100%">
                                         <Button colorScheme="purple" size="md" onClick={handleSubmit}>
                                           Submit
