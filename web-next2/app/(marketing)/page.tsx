@@ -93,7 +93,7 @@ const HeroSection: React.FC = () => {
               title={
                 <FallInPlace>
                   <Heading as="h1" size="2xl" lineHeight="short" mb={4}>
-                    EdTech: Gamified Math Mastery for QCE
+                    MathChamp: Gamified Math Mastery for QCE
                   </Heading>
                 </FallInPlace>
               }
