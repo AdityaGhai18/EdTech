@@ -15,6 +15,8 @@ import {
   VStack,
   Text,
   HStack,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
 import {
   FiUsers,
@@ -26,6 +28,7 @@ import {
   FiFileText,
   FiUser,
   FiBookOpen,
+  FiAward,
 } from "react-icons/fi";
 import { supabase } from "utils/supabase";
 import ProtectedRoute from "#components/auth/protected-route";
@@ -66,6 +69,8 @@ interface Profile {
   first_name: string;
   last_name: string;
   kyc_level?: string;
+  elo: number;
+  username: string;
 }
 
 interface CountryRow {
@@ -87,6 +92,7 @@ const Dashboard = () => {
     userCount: 0,
   });
   const [countryMap, setCountryMap] = useState<Record<string, string>>({});
+  const [leaderboard, setLeaderboard] = useState<Profile[]>([]);
 
   // Hardcode flags for each region code you expect:
   const regionFlagMap: Record<string, string> = {
@@ -156,6 +162,16 @@ const Dashboard = () => {
             map[c.code] = c.name;
           });
           setCountryMap(map);
+        }
+
+        // 3) Fetch leaderboard (top users by ELO)
+        const { data: leaderboardData, error: leaderboardError } = await supabase
+          .from("profiles")
+          .select("username, elo")
+          .order("elo", { ascending: false })
+          .limit(3);
+        if (!leaderboardError && leaderboardData) {
+          setLeaderboard(leaderboardData);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -326,47 +342,78 @@ const Dashboard = () => {
                 />
               </SimpleGrid>
 
-              {/* Quick Actions */}
-              <HStack spacing={4} mb={8} wrap="wrap">
-                <Button
-                  leftIcon={<FiBookOpen />}
-                  colorScheme="purple"
-                  variant="solid"
-                  onClick={() => router.push("/dashboard/q-env")}
-                >
-                  Start Questions
-                </Button>
-                <Button
-                  leftIcon={<FiFileText />}
-                  colorScheme="purple"
-                  variant="solid"
-                  onClick={() => router.push("/dashboard/history")}
-                >
-                  History
-                </Button>
-                <IconButton
-                  aria-label="Profile"
-                  icon={<FiUser />}
-                  colorScheme="purple"
-                  variant="solid"
-                  onClick={() => router.push("/dashboard/profile")}
-                  title="Profile Settings"
-                />
-              </HStack>
-
-              {/* Question Progress */}
-              <Heading size="md" color="white" mb={4}>
-                Your Progress
-              </Heading>
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} mb={8}>
-                {renderProgressCards()}
-              </SimpleGrid>
-
-              {/* Recent Activity */}
-              <Heading size="md" color="white" mb={4}>
-                Recent Activity
-              </Heading>
-              <TransactionList transactions={transactions} />
+              {/* Action Buttons */}
+              <Grid
+                templateAreas={{
+                  base: `"actions" "progress" "leaderboard"`,
+                  md: `"actions leaderboard" "progress leaderboard"`,
+                }}
+                gridTemplateColumns={{ base: "1fr", md: "1fr 350px" }}
+                gap={8}
+                mb={8}
+              >
+                <GridItem area="actions">
+                  <HStack spacing={4} mb={{ base: 4, md: 0 }}>
+                    <Button
+                      leftIcon={<FiBookOpen />}
+                      colorScheme="purple"
+                      variant="solid"
+                      onClick={() => router.push("/dashboard/q-env")}
+                    >
+                      Start Questions
+                    </Button>
+                    <Button
+                      leftIcon={<FiFileText />}
+                      colorScheme="purple"
+                      variant="solid"
+                      onClick={() => router.push("/dashboard/history")}
+                    >
+                      History
+                    </Button>
+                    <IconButton
+                      aria-label="Profile"
+                      icon={<FiUser />}
+                      colorScheme="purple"
+                      variant="solid"
+                      onClick={() => router.push("/dashboard/profile")}
+                      title="Profile Settings"
+                    />
+                  </HStack>
+                </GridItem>
+                <GridItem area="progress">
+                  <Heading size="md" color="white" mb={4}>
+                    Your Progress
+                  </Heading>
+                  <SimpleGrid columns={1} spacing={6}>
+                    {renderProgressCards()}
+                  </SimpleGrid>
+                </GridItem>
+                <GridItem area="leaderboard">
+                  <Box bg="gray.800" borderRadius="xl" p={[4, 6]} boxShadow="lg" w="100%">
+                    <HStack mb={4} spacing={3} justify="center">
+                      <FiAward color="#fbbf24" size={28} />
+                      <Heading size="lg" color="white" letterSpacing="wide">Leaderboard</Heading>
+                    </HStack>
+                    {leaderboard.length === 0 ? (
+                      <Text color="gray.400" textAlign="center">No leaderboard data yet.</Text>
+                    ) : (
+                      <VStack spacing={3} align="stretch">
+                        {leaderboard.map((user, idx) => (
+                          <Flex key={idx} align="center" justify="space-between" bg={idx === 0 ? "yellow.900" : "gray.700"} borderRadius="md" px={5} py={3} boxShadow={idx === 0 ? "lg" : undefined}>
+                            <HStack spacing={3}>
+                              <Box fontWeight="bold" color={idx === 0 ? "yellow.300" : "white"} fontSize="xl">{idx + 1}</Box>
+                              <Text color={idx === 0 ? "yellow.200" : "white"} fontWeight={idx === 0 ? "extrabold" : "semibold"} fontSize="lg">
+                                {user.username}
+                              </Text>
+                            </HStack>
+                            <Text color={idx === 0 ? "yellow.200" : "blue.200"} fontWeight="bold" fontSize="lg">{user.elo}</Text>
+                          </Flex>
+                        ))}
+                      </VStack>
+                    )}
+                  </Box>
+                </GridItem>
+              </Grid>
             </Box>
           </PageTransition>
         </Box>

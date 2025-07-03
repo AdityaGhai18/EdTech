@@ -11,7 +11,7 @@ const siteConfig = {
 
   // Updated SEO metadata for Kipu
   seo: {
-    title: 'Kipu – Near-Zero Fee Cross-Border Transfers',
+    title: 'math champ',
     description:
       'Send and receive money across borders instantly with AI-powered stablecoin technology. Enjoy near-zero fees, immediate access to funds, and reliable local fiat on/off ramps.',
   } as NextSeoProps,

@@ -9,7 +9,7 @@ export const Logo: React.FC<HTMLChakraProps<'svg'>> = (props) => {
         alt="Logo"
         {...props}
       />
-      <chakra.text fontFamily="Poppins" fontSize="3xl" fontWeight="bold" ml={2}>Kipu</chakra.text>
+      <chakra.text fontFamily="Poppins" fontSize="2xl" fontWeight="bold" ml={2} mt={2}>Math Champ</chakra.text>
     </div>
   )
 }

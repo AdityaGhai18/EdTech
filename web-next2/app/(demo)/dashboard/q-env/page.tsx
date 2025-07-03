@@ -13,8 +13,14 @@ import { Spinner } from "@chakra-ui/react";
 import ProtectedRoute from "#components/auth/protected-route";
 import { FaKeyboard } from "react-icons/fa";
 import { MathKeyboard } from "#components/dashboard/MathKeyboard";
+import { addStyles } from 'react-mathquill';
+import './mathquill-custom.css';
 import dynamic from "next/dynamic";
 
+const EditableMathField = dynamic(
+  () => import("react-mathquill").then(mod => mod.EditableMathField),
+  { ssr: false }
+);
 
 interface Question {
   id: string;
@@ -25,15 +31,6 @@ interface Question {
   grade: number;
   explanation: string;
 }
-
-// Dynamically import MathLive's MathfieldElement for client-side only
-const MathfieldElement = dynamic(
-  async () => {
-    const mod = await import("mathlive");
-    return mod.MathfieldElement;
-  },
-  { ssr: false }
-);
 
 const QEnvPage = () => {
   // State for current question and user data
@@ -51,6 +48,7 @@ const QEnvPage = () => {
   const [loading, setLoading] = useState(true);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const mathquillRef = useRef<any>(null);
 
   // Fetch user and ELO from DB on mount
   useEffect(() => {
@@ -126,24 +124,21 @@ const QEnvPage = () => {
     return userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
   };
 
-  // Insert LaTeX at cursor position in input when mathkeyboard is used
+  // Insert LaTeX at cursor position in MathQuill when mathkeyboard is used
   const handleInsertLatex = (latex: string) => {
-    if (!inputRef.current) return;
-    const input = inputRef.current;
-    const start = input.selectionStart || 0;
-    const end = input.selectionEnd || 0;
-    const newValue = answer.slice(0, start) + latex + answer.slice(end);
-    setAnswer(newValue);
-    // Move cursor after inserted latex
-    setTimeout(() => {
-      input.focus();
-      input.setSelectionRange(start + latex.length, start + latex.length);
-    }, 0);
+    if (mathquillRef.current) {
+      mathquillRef.current.write(latex);
+      setAnswer(mathquillRef.current.latex());
+      mathquillRef.current.focus();
+    }
   };
 
   // Submit handler
   const handleSubmit = async () => {
     if (!currentQuestion) return;
+
+    // Log the LaTeX output for debugging/logging
+    console.log('User LaTeX answer:', answer);
 
     const isCorrect = checkAnswer(answer, currentQuestion.answer);
     const eloBefore = elo;
@@ -210,17 +205,16 @@ const QEnvPage = () => {
     fetchQuestion(); // Fetch new question
   };
 
-  // Ensure MathLive is loaded on the client
-  useEffect(() => {
-    import('mathlive');
-  }, []);
-
   const [minLoader, setMinLoader] = useState(true);
 
   useEffect(() => {
     setMinLoader(true);
     const t = setTimeout(() => setMinLoader(false), 1000); // 2 seconds minimum
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    addStyles();
   }, []);
 
   if (loading || !currentQuestion || minLoader) {
@@ -405,16 +399,16 @@ const QEnvPage = () => {
                                         isOpen={showKeyboard}
                                         onInsert={handleInsertLatex}
                                         onClose={() => setShowKeyboard(false)}
+                                        className="custom-math-keyboard"
                                       />
                                       <HStack w="100%" justify="center">
                                         {/* MathLive math-field for answer input */}
-                                        <Box maxW="500px" w="100%" bg="whiteAlpha.100" borderRadius="md" px={2} py={1}>
-                                          <math-field
-                                            value={answer}
-                                            onInput={evt => setAnswer(evt.target.value)}
-                                            style={{ width: "100%", background: "transparent", color: "white", fontSize: "1.25rem", border: "none" }}
-                                            virtualkeyboardmode="manual"
-                                            ref={inputRef}
+                                        <Box maxW="500px" w="100%" borderRadius="md" px={0} py={0} bg="transparent" border="none" boxShadow="none">
+                                          <EditableMathField
+                                            latex={answer}
+                                            onChange={mathField => setAnswer(mathField.latex())}
+                                            mathquillDidMount={mf => { mathquillRef.current = mf; }}
+                                            style={{ width: "100%", background: "transparent", color: "white", fontSize: "1.25rem"}}
                                           />
                                         </Box>
                                         <IconButton

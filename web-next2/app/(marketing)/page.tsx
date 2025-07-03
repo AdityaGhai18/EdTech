@@ -144,9 +144,10 @@ const HeroSection: React.FC = () => {
                 width="100%"
                 height={{ base: '300px', md: '400px', lg: '500px' }}
                 overflow="hidden"
+                mt={-150}
               >
                 <Image
-                  src="/static/images/banner-kipu.png"
+                  src="/static/images/logo.png"
                   alt="Math learning dashboard screenshot"
                   fill
                   style={{ objectFit: 'contain' }}

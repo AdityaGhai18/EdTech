@@ -1,0 +1,68 @@
+/* MathQuill customizations */
+.mq-editable-field .mq-empty {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 1.5px solid #cbd5e1 !important; /* subtle gray-300 outline */
+  border-radius: 4px;
+  color: #fff !important;
+  opacity: 1;
+  transition: border 0.2s;
+}
+.mq-editable-field .mq-cursor {
+  border-left: 2px solid #fff !important;
+}
+
+/* MathQuill field border and focus */
+.mq-editable-field {
+  border: none !important;
+  border-radius: 6px;
+  background: rgba(30, 41, 59, 0.05) !important; /* very subtle slate/transparent */
+  color: #fff !important;
+  transition: border 0.2s;
+  min-height: 38px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+.mq-editable-field:focus {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Placeholder overlay for MathQuill (add a .mq-placeholder span in JS if needed) */
+.mq-placeholder {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a3a3a3;
+  pointer-events: none;
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+/* Custom keyboard button style */
+.custom-math-keyboard {
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+.custom-math-keyboard button {
+  border: 1.2px solid #cbd5e1 !important;
+  color: #cbd5e1 !important;
+  background: transparent !important;
+  border-radius: 5px;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  padding: 5px 10px !important;
+  font-size: 0.98rem !important;
+  margin: 4px !important;
+  min-width: 36px;
+  min-height: 32px;
+}
+.custom-math-keyboard button:hover,
+.custom-math-keyboard button:focus {
+  background: #f1f5f9 !important; /* subtle gray-100 */
+  color: #1e293b !important; /* slate-800 */
+  border-color: #a3a3a3 !important;
+} 
